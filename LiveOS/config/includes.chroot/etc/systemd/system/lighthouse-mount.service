@@ -1,0 +1,12 @@
+[Unit]
+Description=Lighthouse Data Partition Auto-Mount
+After=local-fs.target
+ConditionPathExists=/usr/local/bin/lighthouse-mount.sh
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/lighthouse-mount.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,32 @@
+# XFCE Base Environment
+task-xfce-desktop
+lightdm
+
+# Filesystems
+exfat-fuse
+exfatprogs
+dosfstools
+squashfs-tools
+
+# Networking & Web
+network-manager-gnome
+firefox-esr
+curl
+wget
+aria2
+
+# System Tools
+sudo
+nano
+htop
+gparted
+fdisk
+
+# Python for the Updater
+python3
+python3-full
+jq
+
+# Lighthouse Custom Dependencies
+xdg-utils
+libfuse2

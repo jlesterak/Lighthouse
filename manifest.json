@@ -1,0 +1,112 @@
+{
+  "categories": [
+    {
+      "id": "wikipedia",
+      "name": "Wikipedia (English)",
+      "description": "The complete encyclopedia.",
+      "items": [
+        {
+          "id": "wikipedia_en_all_maxi",
+          "name": "Wikipedia (All, with images)",
+          "description": "The entire English Wikipedia including all images. Extremely large.",
+          "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_all_maxi_2024-01.zim",
+          "size_approx": "100GB",
+          "filename": "wikipedia_en_all_maxi_2024-01.zim"
+        },
+        {
+          "id": "wikipedia_en_all_nopic",
+          "name": "Wikipedia (All, text only)",
+          "description": "The entire English Wikipedia, stripped of images to save space.",
+          "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_all_nopic_2024-01.zim",
+          "size_approx": "50GB",
+          "filename": "wikipedia_en_all_nopic_2024-01.zim"
+        }
+      ]
+    },
+    {
+      "id": "medical",
+      "name": "Medical & First Aid",
+      "description": "Emergency medicine, anatomy, and off-grid healthcare.",
+      "items": [
+        {
+          "id": "wikimed_en_all_maxi",
+          "name": "WikiMed",
+          "description": "The largest and most comprehensive medical offline encyclopedia.",
+          "url": "https://download.kiwix.org/zim/wikipedia/wikimed_en_all_maxi_2024-01.zim",
+          "size_approx": "2.5GB",
+          "filename": "wikimed_en_all_maxi_2024-01.zim"
+        },
+        {
+          "id": "where_there_is_no_doctor",
+          "name": "Where There Is No Doctor",
+          "description": "The most widely used health care manual for health workers and individuals living in rural or isolated areas.",
+          "url": "https://download.kiwix.org/zim/other/where-there-is-no-doctor_en_all_2020-03.zim",
+          "size_approx": "50MB",
+          "filename": "where-there-is-no-doctor_en_all_2020-03.zim"
+        }
+      ]
+    },
+    {
+      "id": "survival",
+      "name": "Survival & Off-Grid Living",
+      "description": "Farming, construction, water filtration, and wilderness survival.",
+      "items": [
+        {
+          "id": "cd3wd",
+          "name": "CD3WD Project (Agriculture & Tech)",
+          "description": "Massive collection of 3rd world development texts covering agriculture, water, sanitation, and construction.",
+          "url": "https://download.kiwix.org/zim/other/cd3wd_en_all_2021-02.zim",
+          "size_approx": "15GB",
+          "filename": "cd3wd_en_all_2021-02.zim"
+        },
+        {
+          "id": "wikihow_en",
+          "name": "WikiHow",
+          "description": "Countless how-to guides for building, repairing, and basic tasks.",
+          "url": "https://download.kiwix.org/zim/wikihow/wikihow_en_all_maxi_2023-10.zim",
+          "size_approx": "35GB",
+          "filename": "wikihow_en_all_maxi_2023-10.zim"
+        }
+      ]
+    },
+    {
+      "id": "computing",
+      "name": "Computing, Engineering & Homelab",
+      "description": "StackExchange dumps for programming, server administration, and electronics.",
+      "items": [
+        {
+          "id": "stackexchange_serverfault",
+          "name": "ServerFault StackExchange",
+          "description": "Questions and answers for system and network administrators.",
+          "url": "https://download.kiwix.org/zim/stackexchange/stackexchange_en_serverfault_all_2023-11.zim",
+          "size_approx": "500MB",
+          "filename": "stackexchange_en_serverfault_all_2023-11.zim"
+        },
+        {
+          "id": "stackexchange_ubuntu",
+          "name": "AskUbuntu StackExchange",
+          "description": "Essential troubleshooting for Linux systems.",
+          "url": "https://download.kiwix.org/zim/stackexchange/stackexchange_en_askubuntu_all_2023-11.zim",
+          "size_approx": "1.5GB",
+          "filename": "stackexchange_en_askubuntu_all_2023-11.zim"
+        },
+        {
+          "id": "stackexchange_electronics",
+          "name": "Electrical Engineering StackExchange",
+          "description": "Electronics repair and design.",
+          "url": "https://download.kiwix.org/zim/stackexchange/stackexchange_en_electronics_all_2023-11.zim",
+          "size_approx": "800MB",
+          "filename": "stackexchange_en_electronics_all_2023-11.zim"
+        },
+        {
+          "id": "stackexchange_amateur_radio",
+          "name": "Amateur (Ham) Radio StackExchange",
+          "description": "Emergency comms troubleshooting and antenna building.",
+          "url": "https://download.kiwix.org/zim/stackexchange/stackexchange_en_ham_all_2023-11.zim",
+          "size_approx": "50MB",
+          "filename": "stackexchange_en_ham_all_2023-11.zim"
+        }
+      ]
+    }
+  ]
+}
