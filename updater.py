@@ -10,7 +10,9 @@ import os
 import sys
 import json
 import urllib.request
+import urllib.parse
 import urllib.error
+import xml.etree.ElementTree as ET
 import time
 
 MANIFEST_FILE = "manifest.json"
@@ -131,6 +133,67 @@ def download_file(url, target_path):
     os.rename(temp_path, target_path)
     return True
 
+def search_kiwix_library(query):
+    print(f"\nSearching Kiwix library for '{query}'...")
+    encoded_query = urllib.parse.quote(query)
+    url = f"https://library.kiwix.org/catalog/v2/entries?q={encoded_query}&count=20"
+    
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            xml_data = resp.read()
+    except Exception as e:
+        print(f"Error querying Kiwix API: {e}")
+        return []
+        
+    try:
+        root = ET.fromstring(xml_data)
+    except ET.ParseError as e:
+        print(f"Error parsing API response: {e}")
+        return []
+        
+    ns = {'atom': 'http://www.w3.org/2005/Atom'}
+    results = []
+    
+    for entry in root.findall('atom:entry', ns):
+        title_node = entry.find('atom:title', ns)
+        summary_node = entry.find('atom:summary', ns)
+        
+        title = title_node.text if title_node is not None else "Unknown Title"
+        summary = summary_node.text if summary_node is not None else ""
+        
+        download_url = None
+        size_approx = "Unknown size"
+        
+        for link in entry.findall('atom:link', ns):
+            rel = link.get('rel')
+            href = link.get('href')
+            if rel == 'http://opds-spec.org/acquisition/open-access' and href:
+                if href.endswith('.meta4'):
+                    download_url = href[:-6]
+                else:
+                    download_url = href
+                    
+                length = link.get('length')
+                if length and length.isdigit():
+                    size_approx = format_bytes(int(length))
+                break
+                
+        if download_url:
+            filename = download_url.split('/')[-1]
+            if '?' in filename:
+                filename = filename.split('?')[0]
+                
+            results.append({
+                'name': title,
+                'description': summary,
+                'url': download_url,
+                'size_approx': size_approx,
+                'filename': filename
+            })
+            
+    return results
+
 def print_menu(manifest):
     print("="*60)
     print(" Lighthouse Offline Knowledge Updater")
@@ -159,6 +222,7 @@ def print_menu(manifest):
             item_counter += 1
             print()
             
+    print("[s] Search entire Kiwix library")
     print("[q] Quit")
     return item_map
 
@@ -171,33 +235,75 @@ def main():
     while True:
         item_map = print_menu(manifest)
         
-        choice = input("\nEnter the number of the item to download (or 'q' to quit): ").strip().lower()
+        choice = input("\nEnter the number of the item to download, 's' to search, or 'q' to quit: ").strip().lower()
         
         if choice == 'q':
             break
             
-        try:
-            choice_num = int(choice)
-            if choice_num not in item_map:
-                print("Invalid selection.")
+        if choice == 's':
+            query = input("Enter search query (e.g., 'medical', 'ubuntu', 'survival'): ").strip()
+            if not query:
+                continue
+            
+            results = search_kiwix_library(query)
+            if not results:
+                print("No results found or error occurred.")
+                input("\nPress Enter to return to the menu...")
                 continue
                 
-            selected = item_map[choice_num]
-            target_path = os.path.join(CONTENT_DIR, selected['filename'])
+            print("\n--- Search Results ---")
+            search_map = {}
+            for i, res in enumerate(results, 1):
+                print(f"  [{i}] {res['name']} (~{res['size_approx']})")
+                print(f"      {res['description']}")
+                # Check if it already exists
+                final_path = os.path.join(CONTENT_DIR, res['filename'])
+                if os.path.exists(final_path):
+                    print("      [STATUS: ALREADY DOWNLOADED]")
+                elif os.path.exists(final_path + ".part"):
+                    print("      [STATUS: PARTIAL DOWNLOAD EXISTS]")
+                print()
+                search_map[i] = res
             
-            if os.path.exists(target_path):
-                print(f"{selected['name']} is already completely downloaded.")
-                redownload = input("Do you want to re-download it? (y/N): ").strip().lower()
-                if redownload != 'y':
+            print("  [b] Back to main menu")
+            
+            sub_choice = input("\nEnter the number of the item to download, or 'b' to go back: ").strip().lower()
+            if sub_choice == 'b':
+                continue
+                
+            try:
+                sub_choice_num = int(sub_choice)
+                if sub_choice_num not in search_map:
+                    print("Invalid selection.")
                     continue
+                selected = search_map[sub_choice_num]
+            except ValueError:
+                print("Please enter a valid number.")
+                continue
+        else:
+            try:
+                choice_num = int(choice)
+                if choice_num not in item_map:
+                    print("Invalid selection.")
+                    continue
+                    
+                selected = item_map[choice_num]
+            except ValueError:
+                print("Please enter a valid number or 's' to search.")
+                continue
             
-            print(f"\nPreparing to download {selected['name']}...")
-            download_file(selected['url'], target_path)
-            
-            input("\nPress Enter to return to the menu...")
-            
-        except ValueError:
-            print("Please enter a valid number.")
+        target_path = os.path.join(CONTENT_DIR, selected['filename'])
+        
+        if os.path.exists(target_path):
+            print(f"{selected['name']} is already completely downloaded.")
+            redownload = input("Do you want to re-download it? (y/N): ").strip().lower()
+            if redownload != 'y':
+                continue
+        
+        print(f"\nPreparing to download {selected['name']}...")
+        download_file(selected['url'], target_path)
+        
+        input("\nPress Enter to return to the menu...")
 
 if __name__ == "__main__":
     main()
