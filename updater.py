@@ -235,12 +235,15 @@ def main():
     while True:
         item_map = print_menu(manifest)
         
-        choice = input("\nEnter the number of the item to download, 's' to search, or 'q' to quit: ").strip().lower()
+        choice = input("\nEnter the number(s) to download (comma-separated), 'all', 's' to search, or 'q' to quit: ").strip().lower()
         
         if choice == 'q':
             break
             
-        if choice == 's':
+        selected_items = []
+        if choice == 'all':
+            selected_items = list(item_map.values())
+        elif choice == 's':
             query = input("Enter search query (e.g., 'medical', 'ubuntu', 'survival'): ").strip()
             if not query:
                 continue
@@ -267,41 +270,61 @@ def main():
             
             print("  [b] Back to main menu")
             
-            sub_choice = input("\nEnter the number of the item to download, or 'b' to go back: ").strip().lower()
+            sub_choice = input("\nEnter the number(s) to download (comma-separated), 'all', or 'b' to go back: ").strip().lower()
             if sub_choice == 'b':
                 continue
                 
-            try:
-                sub_choice_num = int(sub_choice)
-                if sub_choice_num not in search_map:
-                    print("Invalid selection.")
+            if sub_choice == 'all':
+                selected_items = list(search_map.values())
+            else:
+                parts = [p.strip() for p in sub_choice.split(',') if p.strip()]
+                invalid = False
+                for p in parts:
+                    try:
+                        sub_choice_num = int(p)
+                        if sub_choice_num not in search_map:
+                            print(f"Invalid selection: {sub_choice_num}")
+                            invalid = True
+                            break
+                        selected_items.append(search_map[sub_choice_num])
+                    except ValueError:
+                        print("Please enter valid numbers.")
+                        invalid = True
+                        break
+                if invalid or not selected_items:
                     continue
-                selected = search_map[sub_choice_num]
-            except ValueError:
-                print("Please enter a valid number.")
-                continue
         else:
-            try:
-                choice_num = int(choice)
-                if choice_num not in item_map:
-                    print("Invalid selection.")
-                    continue
-                    
-                selected = item_map[choice_num]
-            except ValueError:
-                print("Please enter a valid number or 's' to search.")
+            parts = [p.strip() for p in choice.split(',') if p.strip()]
+            invalid = False
+            for p in parts:
+                try:
+                    choice_num = int(p)
+                    if choice_num not in item_map:
+                        print(f"Invalid selection: {choice_num}")
+                        invalid = True
+                        break
+                    selected_items.append(item_map[choice_num])
+                except ValueError:
+                    print("Please enter valid numbers, 'all', or 's' to search.")
+                    invalid = True
+                    break
+            if invalid or not selected_items:
                 continue
             
-        target_path = os.path.join(CONTENT_DIR, selected['filename'])
-        
-        if os.path.exists(target_path):
-            print(f"{selected['name']} is already completely downloaded.")
-            redownload = input("Do you want to re-download it? (y/N): ").strip().lower()
-            if redownload != 'y':
-                continue
-        
-        print(f"\nPreparing to download {selected['name']}...")
-        download_file(selected['url'], target_path)
+        for selected in selected_items:
+            target_path = os.path.join(CONTENT_DIR, selected['filename'])
+            
+            if os.path.exists(target_path):
+                print(f"{selected['name']} is already completely downloaded.")
+                redownload = input(f"Do you want to re-download {selected['name']}? (y/N): ").strip().lower()
+                if redownload != 'y':
+                    continue
+            
+            print(f"\nPreparing to download {selected['name']}...")
+            success = download_file(selected['url'], target_path)
+            if not success:
+                print(f"Download aborted or failed for {selected['name']}. Stopping batch.")
+                break
         
         input("\nPress Enter to return to the menu...")
 
