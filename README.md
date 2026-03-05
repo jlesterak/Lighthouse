@@ -35,7 +35,7 @@ To build your own Lighthouse drive, or simply download the offline resources to 
 
 1. Clone this repository:
    ```bash
-   git clone https://github.com/yourusername/Lighthouse.git
+   git clone https://github.com/jlesterak/Lighthouse.git
    cd Lighthouse
    ```
 2. Run the updater to fetch your desired offline content:
