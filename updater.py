@@ -211,12 +211,8 @@ def print_menu(manifest):
             print(f"  [{item_counter}] {item['name']} (~{item['size_approx']})")
             print(f"      {item['description']}")
             
-            # Check if it already exists
-            final_path = os.path.join(CONTENT_DIR, item['filename'])
-            if os.path.exists(final_path):
-                print("      [STATUS: ALREADY DOWNLOADED]")
-            elif os.path.exists(final_path + ".part"):
-                print("      [STATUS: PARTIAL DOWNLOAD EXISTS]")
+            # Note: We can no longer stat the file here accurately because the filename
+            # is dynamic based on the latest version. User will be notified when they attempt download.
                 
             item_map[item_counter] = item
             item_counter += 1
@@ -312,16 +308,27 @@ def main():
                 continue
             
         for selected in selected_items:
-            target_path = os.path.join(CONTENT_DIR, selected['filename'])
+            if 'catalog_query' in selected:
+                print(f"\nResolving latest version of {selected['name']} via Kiwix catalog...")
+                res_list = search_kiwix_library(selected['catalog_query'])
+                if not res_list:
+                    print(f"Failed to find {selected['name']} in the Kiwix catalog. Skipping.")
+                    continue
+                resolved_item = res_list[0]
+                url_to_download = resolved_item['url']
+                target_path = os.path.join(CONTENT_DIR, resolved_item['filename'])
+            else:
+                url_to_download = selected['url']
+                target_path = os.path.join(CONTENT_DIR, selected['filename'])
             
             if os.path.exists(target_path):
-                print(f"{selected['name']} is already completely downloaded.")
+                print(f"{selected['name']} ({os.path.basename(target_path)}) is already completely downloaded.")
                 redownload = input(f"Do you want to re-download {selected['name']}? (y/N): ").strip().lower()
                 if redownload != 'y':
                     continue
             
             print(f"\nPreparing to download {selected['name']}...")
-            success = download_file(selected['url'], target_path)
+            success = download_file(url_to_download, target_path)
             if not success:
                 print(f"Download aborted or failed for {selected['name']}. Stopping batch.")
                 break

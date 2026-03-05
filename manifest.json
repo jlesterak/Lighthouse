@@ -9,17 +9,15 @@
           "id": "wikipedia_en_all_maxi",
           "name": "Wikipedia (All, with images)",
           "description": "The entire English Wikipedia including all images. Extremely large.",
-          "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_all_maxi_2024-01.zim",
-          "size_approx": "100GB",
-          "filename": "wikipedia_en_all_maxi_2024-01.zim"
+          "catalog_query": "wikipedia_en_all_maxi",
+          "size_approx": "100GB"
         },
         {
           "id": "wikipedia_en_all_nopic",
           "name": "Wikipedia (All, text only)",
           "description": "The entire English Wikipedia, stripped of images to save space.",
-          "url": "https://download.kiwix.org/zim/wikipedia/wikipedia_en_all_nopic_2024-01.zim",
-          "size_approx": "50GB",
-          "filename": "wikipedia_en_all_nopic_2024-01.zim"
+          "catalog_query": "wikipedia_en_all_nopic",
+          "size_approx": "50GB"
         }
       ]
     },
@@ -32,17 +30,15 @@
           "id": "wikimed_en_all_maxi",
           "name": "WikiMed",
           "description": "The largest and most comprehensive medical offline encyclopedia.",
-          "url": "https://download.kiwix.org/zim/wikipedia/wikimed_en_all_maxi_2024-01.zim",
-          "size_approx": "2.5GB",
-          "filename": "wikimed_en_all_maxi_2024-01.zim"
+          "catalog_query": "wikimed_en_all_maxi",
+          "size_approx": "2.5GB"
         },
         {
           "id": "where_there_is_no_doctor",
           "name": "Where There Is No Doctor",
           "description": "The most widely used health care manual for health workers and individuals living in rural or isolated areas.",
-          "url": "https://download.kiwix.org/zim/other/where-there-is-no-doctor_en_all_2020-03.zim",
-          "size_approx": "50MB",
-          "filename": "where-there-is-no-doctor_en_all_2020-03.zim"
+          "catalog_query": "where-there-is-no-doctor_en_all",
+          "size_approx": "50MB"
         }
       ]
     },
@@ -55,17 +51,15 @@
           "id": "cd3wd",
           "name": "CD3WD Project (Agriculture & Tech)",
           "description": "Massive collection of 3rd world development texts covering agriculture, water, sanitation, and construction.",
-          "url": "https://download.kiwix.org/zim/other/cd3wd_en_all_2021-02.zim",
-          "size_approx": "15GB",
-          "filename": "cd3wd_en_all_2021-02.zim"
+          "catalog_query": "cd3wd_en_all",
+          "size_approx": "15GB"
         },
         {
           "id": "wikihow_en",
           "name": "WikiHow",
           "description": "Countless how-to guides for building, repairing, and basic tasks.",
-          "url": "https://download.kiwix.org/zim/wikihow/wikihow_en_all_maxi_2023-10.zim",
-          "size_approx": "35GB",
-          "filename": "wikihow_en_all_maxi_2023-10.zim"
+          "catalog_query": "wikihow_en_all_maxi",
+          "size_approx": "35GB"
         }
       ]
     },
@@ -78,33 +72,29 @@
           "id": "stackexchange_serverfault",
           "name": "ServerFault StackExchange",
           "description": "Questions and answers for system and network administrators.",
-          "url": "https://download.kiwix.org/zim/stackexchange/stackexchange_en_serverfault_all_2023-11.zim",
-          "size_approx": "500MB",
-          "filename": "stackexchange_en_serverfault_all_2023-11.zim"
+          "catalog_query": "stackexchange_en_serverfault_all",
+          "size_approx": "500MB"
         },
         {
           "id": "stackexchange_ubuntu",
           "name": "AskUbuntu StackExchange",
           "description": "Essential troubleshooting for Linux systems.",
-          "url": "https://download.kiwix.org/zim/stackexchange/stackexchange_en_askubuntu_all_2023-11.zim",
-          "size_approx": "1.5GB",
-          "filename": "stackexchange_en_askubuntu_all_2023-11.zim"
+          "catalog_query": "stackexchange_en_askubuntu_all",
+          "size_approx": "1.5GB"
         },
         {
           "id": "stackexchange_electronics",
           "name": "Electrical Engineering StackExchange",
           "description": "Electronics repair and design.",
-          "url": "https://download.kiwix.org/zim/stackexchange/stackexchange_en_electronics_all_2023-11.zim",
-          "size_approx": "800MB",
-          "filename": "stackexchange_en_electronics_all_2023-11.zim"
+          "catalog_query": "stackexchange_en_electronics_all",
+          "size_approx": "800MB"
         },
         {
           "id": "stackexchange_amateur_radio",
           "name": "Amateur (Ham) Radio StackExchange",
           "description": "Emergency comms troubleshooting and antenna building.",
-          "url": "https://download.kiwix.org/zim/stackexchange/stackexchange_en_ham_all_2023-11.zim",
-          "size_approx": "50MB",
-          "filename": "stackexchange_en_ham_all_2023-11.zim"
+          "catalog_query": "stackexchange_en_ham_all",
+          "size_approx": "50MB"
         }
       ]
     }
