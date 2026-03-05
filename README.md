@@ -33,20 +33,24 @@ Lighthouse/
 
 To build your own Lighthouse drive, or simply download the offline resources to your local machine:
 
-1. Clone this repository:
+1. **If building a dedicated USB Drive:** Plug in your large exFAT formatted USB drive, open a terminal, and `cd` into that drive so the massive datasets download directly to the portable storage.
+   ```bash
+   cd /media/yourusername/YOUR_USB_DRIVE
+   ```
+2. Clone this repository:
    ```bash
    git clone https://github.com/jlesterak/Lighthouse.git
    cd Lighthouse
    ```
-2. Run the updater to fetch your desired offline content:
+3. Run the updater to fetch your desired offline content:
    ```bash
    python3 updater.py
    ```
-3. Fetch the offline readers:
+4. Fetch the offline readers:
    ```bash
    ./get_readers.sh
    ```
-4. If building the full bootable USB, consult the [Build Guide](docs/build_guide.md).
+5. If building the full bootable Live OS, consult the [Build Guide](docs/build_guide.md).
 
 ## Philosophy and License
 
