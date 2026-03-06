@@ -90,20 +90,17 @@ sync
 partprobe $DEVICE || true
 sleep 3
 
-# Find exactly which partition was just created (should be the largest, or simply the last one)
-# Usually for Debian live it's partition 3.
-DATA_PART="${DEVICE}3"
-if [ ! -b "$DATA_PART" ]; then
-    DATA_PART="${DEVICE}2"
-fi
+# Find exactly which partition was just created (should be the last one)
+DATA_PART_NAME=$(lsblk -rn -o NAME "$DEVICE" | tail -n 1)
+DATA_PART="/dev/$DATA_PART_NAME"
 
-if [ ! -b "$DATA_PART" ]; then
+if [ ! -b "$DATA_PART" ] || [ "$DATA_PART" == "$DEVICE" ]; then
     echo "Error: Could not determine newly created partition. Exiting."
     exit 1
 fi
 
-echo "Formatting $DATA_PART as exFAT with label LIGHTHOUSE_DATA..."
-mkfs.exfat -n LIGHTHOUSE_DATA $DATA_PART
+echo "Formatting $DATA_PART as exFAT with label LIGHTHOUSE..."
+mkfs.exfat -n LIGHTHOUSE $DATA_PART
 
 # 4. Copying the offline content
 echo "Mounting $DATA_PART to copy offline content..."

@@ -34,11 +34,11 @@
           "size_approx": "2.5GB"
         },
         {
-          "id": "where_there_is_no_doctor",
-          "name": "Where There Is No Doctor",
-          "description": "The most widely used health care manual for health workers and individuals living in rural or isolated areas.",
-          "catalog_query": "where-there-is-no-doctor_en_all",
-          "size_approx": "50MB"
+          "id": "medical_library",
+          "name": "Medical Library",
+          "description": "A collection of books pertaining to field and emergency medicine.",
+          "catalog_query": "zimgit-medicine_en",
+          "size_approx": "70MB"
         }
       ]
     },

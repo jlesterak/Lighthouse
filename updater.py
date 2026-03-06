@@ -194,6 +194,65 @@ def search_kiwix_library(query):
             
     return results
 
+def get_exact_zim(query):
+    """
+    Downloads the full Kiwix catalog XML and searches it locally.
+    This guarantees 100% precision for matching exact names and flavours,
+    since the Kiwix search API ignores exact string tokens.
+    """
+    url = "https://library.kiwix.org/catalog/v2/entries"
+    
+    parts = query.rsplit('_', 1)
+    
+    if len(parts) == 2:
+        flavor_test = parts[1]
+        if flavor_test in ['maxi', 'mini', 'nopic', 'novid']:
+            target_name = parts[0]
+            target_flavor = flavor_test
+        else:
+            target_name = query
+            target_flavor = "None"
+    else:
+        target_name = query
+        target_flavor = "None"
+
+    print(f"\nDownloading Kiwix primary catalog for exact matching...")
+    url = "https://library.kiwix.org/catalog/root.xml"
+    ns = {'atom': 'http://www.w3.org/2005/Atom'}
+
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            xml_data = resp.read()
+        root = ET.fromstring(xml_data)
+    except Exception as e:
+        print(f"\nError fetching or parsing catalog search: {e}")
+        return None, None
+
+    for entry in root.findall('atom:entry', ns):
+        name_node = entry.find('atom:name', ns)
+        flavour_node = entry.find('atom:flavour', ns)
+        
+        entry_name = name_node.text if name_node is not None else "None"
+        entry_flavour = flavour_node.text if flavour_node is not None else "None"
+        
+        if entry_name == target_name:
+            if target_flavor != "None" and entry_flavour != target_flavor:
+                continue
+                
+            for link in entry.findall('atom:link', ns):
+                if link.get('rel') == 'http://opds-spec.org/acquisition/open-access':
+                    href = link.get('href', '')
+                    if href.endswith('.meta4'):
+                        download_url = href[:-6]
+                        filename = download_url.split('/')[-1]
+                        if '?' in filename:
+                            filename = filename.split('?')[0]
+                        return download_url, filename
+                        
+    print("\n  Search returned results, but no exact name/flavor match found.")
+    return None, None
+
 def print_menu(manifest):
     print("="*60)
     print(" Lighthouse Offline Knowledge Updater")
@@ -310,13 +369,13 @@ def main():
         for selected in selected_items:
             if 'catalog_query' in selected:
                 print(f"\nResolving latest version of {selected['name']} via Kiwix catalog...")
-                res_list = search_kiwix_library(selected['catalog_query'])
-                if not res_list:
+                url_to_download, filename = get_exact_zim(selected['catalog_query'])
+                
+                if not url_to_download:
                     print(f"Failed to find {selected['name']} in the Kiwix catalog. Skipping.")
                     continue
-                resolved_item = res_list[0]
-                url_to_download = resolved_item['url']
-                target_path = os.path.join(CONTENT_DIR, resolved_item['filename'])
+                    
+                target_path = os.path.join(CONTENT_DIR, filename)
             else:
                 url_to_download = selected['url']
                 target_path = os.path.join(CONTENT_DIR, selected['filename'])
