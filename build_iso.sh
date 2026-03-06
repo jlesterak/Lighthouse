@@ -8,6 +8,10 @@ echo "================================================="
 echo " Lighthouse Live OS ISO Builder"
 echo "================================================="
 
+TARGET_ARCH=${1:-amd64}
+echo "Target Architecture: $TARGET_ARCH"
+export LB_ARCHITECTURE="$TARGET_ARCH"
+
 if [ "$EUID" -ne 0 ]; then
   echo "Please run this script as root (sudo)."
   exit 1
@@ -38,7 +42,7 @@ echo "(This may take 30-60 minutes depending on your internet connection and CPU
 echo "-------------------------------------------------"
 lb build
 
-ISO_FILE="live-image-amd64.hybrid.iso"
+ISO_FILE="live-image-${TARGET_ARCH}.hybrid.iso"
 if [ -f "$ISO_FILE" ]; then
     echo "-------------------------------------------------"
     echo "================================================="

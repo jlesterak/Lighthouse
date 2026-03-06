@@ -50,7 +50,21 @@ while true; do
         3)
             echo ""
             echo "Launching Live OS ISO Builder..."
-            sudo ./build_iso.sh
+            echo "Select target architecture:"
+            echo "  1) amd64 (Standard Intel/AMD PCs - Recommended)"
+            echo "  2) arm64 (Apple Silicon Macs, modern Chromebooks, Raspberry Pi)"
+            read -p "Enter choice [1-2]: " arch_choice
+            
+            if [ "$arch_choice" == "1" ]; then
+                target_arch="amd64"
+            elif [ "$arch_choice" == "2" ]; then
+                target_arch="arm64"
+            else
+                echo "Invalid choice. Aborting."
+                continue
+            fi
+            
+            sudo ./build_iso.sh "$target_arch"
             ;;
         4)
             echo ""
@@ -58,9 +72,24 @@ while true; do
             read -p "Enter the target USB device (e.g., /dev/sdX): " usb_device
             if [ -z "$usb_device" ]; then
                 echo "Invalid device."
-            else
-                sudo ./build_usb.sh "$usb_device"
+                continue
             fi
+            
+            echo "Select the architecture of the ISO you built:"
+            echo "  1) amd64"
+            echo "  2) arm64"
+            read -p "Enter choice [1-2]: " arch_choice
+            
+            if [ "$arch_choice" == "1" ]; then
+                target_arch="amd64"
+            elif [ "$arch_choice" == "2" ]; then
+                target_arch="arm64"
+            else
+                echo "Invalid choice. Aborting."
+                continue
+            fi
+            
+            sudo ./build_usb.sh "$usb_device" "$target_arch"
             ;;
         5)
             echo "Exiting."

@@ -11,14 +11,16 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 if [ -z "$1" ]; then
-  echo "Usage: sudo $0 /dev/sdX"
+  echo "Usage: sudo $0 /dev/sdX [amd64|arm64]"
   echo "Replace /dev/sdX with your USB drive device name."
   echo "Run 'lsblk' to find the correct device. DO NOT guess."
+  echo "Architecture defaults to amd64 if not provided."
   exit 1
 fi
 
 DEVICE=$1
-ISO_FILE="LiveOS/live-image-amd64.hybrid.iso"
+TARGET_ARCH=${2:-amd64}
+ISO_FILE="LiveOS/live-image-${TARGET_ARCH}.hybrid.iso"
 
 # Check if the device exists and is a block device
 if [ ! -b "$DEVICE" ]; then

@@ -1,0 +1,14 @@
+2026-03-05 20:22:06 URL:http://deb.debian.org/debian/dists/bookworm/InRelease [151078/151078] -> "/home/jake/Lighthouse/LiveOS/chroot/var/lib/apt/lists/partial/deb.debian.org_debian_dists_bookworm_InRelease" [1]
+gpgv: Signature made Sat Jan 10 15:29:12 2026 MST
+gpgv:                using RSA key 4CB50190207B4758A3F73A796ED0E7B82643E131
+gpgv: Good signature from "Debian Archive Automatic Signing Key (12/bookworm) <ftpmaster@debian.org>"
+gpgv: Signature made Sat Jan 10 15:29:13 2026 MST
+gpgv:                using RSA key B8E5F13176D2A7A75220028078DBA3BC47EF2265
+gpgv: Good signature from "Debian Archive Automatic Signing Key (13/trixie) <ftpmaster@debian.org>"
+gpgv: Signature made Sat Jan 10 15:30:51 2026 MST
+gpgv:                using EDDSA key 4D64FEC119C2029067D6E791F8D2585B8783D481
+gpgv: Good signature from "Debian Stable Release Key (12/bookworm) <debian-release@lists.debian.org>"
+2026-03-05 20:22:14 URL:http://deb.debian.org/debian/dists/bookworm/main/binary-arm64/by-hash/SHA256/3422286d4340167769632b1da5abdb2dc399eab71407155eee56f1df5dc63540 [8690780/8690780] -> "/home/jake/Lighthouse/LiveOS/chroot/var/lib/apt/lists/partial/deb.debian.org_debian_dists_bookworm_main_binary-arm64_Packages.xz" [1]
+2026-03-05 20:22:17 URL:http://deb.debian.org/debian/dists/bookworm/contrib/binary-arm64/by-hash/SHA256/2c8d4d73c617dee3178b63085b037371183a44573c3c0dc929cdfd86e9555e95 [45664/45664] -> "/home/jake/Lighthouse/LiveOS/chroot/var/lib/apt/lists/partial/deb.debian.org_debian_dists_bookworm_contrib_binary-arm64_Packages.xz" [1]
+2026-03-05 20:22:18 URL:http://deb.debian.org/debian/dists/bookworm/non-free-firmware/binary-arm64/by-hash/SHA256/a1330073ccb0787ab9864190877bccec16642f93f0dfaf9bdbff597c6326a6e3 [5832/5832] -> "/home/jake/Lighthouse/LiveOS/chroot/var/lib/apt/lists/partial/deb.debian.org_debian_dists_bookworm_non-free-firmware_binary-arm64_Packages.xz" [1]
+2026-03-05 20:22:18 URL:http://deb.debian.org/debian/dists/bookworm/non-free/binary-arm64/by-hash/SHA256/9937e47384d9243c277b698fa0843dccc44987740687a864293f7a27668fc5cb [75848/75848] -> "/home/jake/Lighthouse/LiveOS/chroot/var/lib/apt/lists/partial/deb.debian.org_debian_dists_bookworm_non-free_binary-arm64_Packages.xz" [1]

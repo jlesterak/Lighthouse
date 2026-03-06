@@ -3,11 +3,13 @@
 # Set up the configuration for the Lighthouse Debian Live OS
 # We use XFCE for a very lightweight desktop environment
 
+TARGET_ARCH=${LB_ARCHITECTURE:-amd64}
+
 lb config noauto \
     --mode debian \
     --system live \
-    --architectures amd64 \
-    --linux-flavours amd64 \
+    --architectures "$TARGET_ARCH" \
+    --linux-flavours "$TARGET_ARCH" \
     --security true \
     --updates true \
     --distribution bookworm \
