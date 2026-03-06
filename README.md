@@ -31,26 +31,19 @@ Lighthouse/
 
 ## Getting Started
 
-To build your own Lighthouse drive, or simply download the offline resources to your local machine:
+To build your own Lighthouse drive, or simply download the offline resources to your local machine, use the interactive Setup Script:
 
-1. **If building a dedicated USB Drive:** Plug in your large exFAT formatted USB drive, open a terminal, and `cd` into that drive so the massive datasets download directly to the portable storage.
-   ```bash
-   cd /media/yourusername/YOUR_USB_DRIVE
-   ```
-2. Clone this repository:
-   ```bash
-   git clone https://github.com/jlesterak/Lighthouse.git
-   cd Lighthouse
-   ```
-3. Run the updater to fetch your desired offline content:
-   ```bash
-   python3 updater.py
-   ```
-4. Fetch the offline readers:
-   ```bash
-   ./get_readers.sh
-   ```
-5. If building the full bootable Live OS, consult the [Build Guide](docs/build_guide.md).
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/jlesterak/Lighthouse/master/setup.sh)
+```
+
+The script will automatically clone the repository (if necessary) and present a guided menu to:
+1. Download Offline Content (Wikipedia, Medical Guides, Maps, etc.)
+2. Download Readers (Kiwix for Desktop, Linux, and Android)
+3. Build the bootable Live OS ISO
+4. Format and flash the Live OS & Knowledge Base to a USB Drive
+
+If building the full bootable Live OS manually, consult the [Build Guide](docs/build_guide.md).
 
 ## Philosophy and License
 

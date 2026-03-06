@@ -29,43 +29,34 @@ cd Lighthouse
 
 Before we build the USB, we need to download the knowledge base and the cross-platform reader software.
 
-1. **Download the Readers:** This script pulls the Android `.apk`, Windows `.exe`, and Linux AppImage for the Kiwix readers.
+1. **Launch the Master Setup Script:** We provide a unified wrapper script to handle downloading resources and assembling the USB.
    ```bash
-   ./get_readers.sh
+   ./setup.sh
    ```
 
-2. **Download the Content:** Run the cross-platform Python updater. This will read the `manifest.json` and present a menu.
-   ```bash
-   python3 updater.py
-   ```
-   *Note: Select the content you wish to include. If your internet connection drops, simply run `python3 updater.py` again, and it will resume the large `.zim` downloads exactly where it left off!*
+2. **Download Readers & Content:** Choose Option **1** and Option **2** from the interactive menu to download the ZIM offline libraries and Kiwix reader software.
 
 ## Step 3: Build the Live OS ISO
 
-Lighthouse uses Debian's `live-build` toolchain to construct a customized XFCE Live environment. We provide an automated script to handle the build process.
+Lighthouse uses Debian's `live-build` toolchain to construct a customized XFCE Live environment featuring Kiwix and Marble (Offline Maps).
 
-1. Initiate the automated build process as root. This will download the base Debian packages and assemble the `.iso` file. This process can take 30-60 minutes depending on your internet connection.
-   ```bash
-   sudo ./build_iso.sh
-   ```
-2. Once completed, you will find a file named `live-image-amd64.hybrid.iso` inside the `LiveOS/` directory.
+1. From the `setup.sh` interactive menu, choose Option **3** (Build Live OS ISO).
+2. The script will automatically trigger `build_iso.sh` as root, download the base Debian packages, and assemble the `.iso` file. This process can take 30-60 minutes.
+3. Once completed, you will find a file named `live-image-amd64.hybrid.iso` inside the `LiveOS/` directory.
 
 ## Step 4: Flash the USB Drive
 
 Finally, we must partition and format the physical USB drive to accept both the bootable Live OS and the `exFAT` cross-platform data partition.
 
-1. **Identify your USB Drive:** Plug in your USB stick and locate its block device name.
+1. **Identify your USB Drive:** Plug in your USB stick and locate its block device name in a separate terminal.
    ```bash
    lsblk
    ```
    > [!CAUTION]
    > Identify the correct `/dev/sdX` device (e.g., `/dev/sdb` or `/dev/sdc`). Do not confuse this with your main drive (usually `/dev/sda` or `/dev/nvme0n1`).
 
-2. **Run the Automated Script:** Execute the main build script, passing your USB drive as the argument.
-   ```bash
-   cd ..
-   sudo ./build_usb.sh /dev/sdX
-   ```
+2. **Run the Automated Script:** Return to the `setup.sh` menu and choose Option **4** (Flash Live OS & Content to USB).
+3. The script will prompt you for the `/dev/sdX` target. Enter the block device path you found earlier.
 
 ### What does `build_usb.sh` do?
 - It wipes the partition table of `/dev/sdX`.

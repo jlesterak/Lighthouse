@@ -46,23 +46,18 @@ If you find a functional PC but its internal hard drive is broken, corrupted, or
 
 ## Keeping Lighthouse Updated
 
-Knowledge goes stale. Before you pack Lighthouse away, or during off-grid internet access windows, you should keep the `.zim` files up-to-date. The custom python updater tool is built to handle poor internet connections and can perfectly resume large file downloads when your connection drops.
+Knowledge goes stale. Before you pack Lighthouse away, or during off-grid internet access windows, you should keep the `.zim` files up-to-date.
 
-### Running the cross-platform updater
+### The Unified Setup Script
 
-You must have Python 3 installed on your system.
-**(Windows Users: Download Python from the Microsoft Store or Python.org)**
+The easiest way to update or interact with Lighthouse is via the unified setup script. Open a terminal (Mac/Linux) or WSL (Windows) and run:
 
-1. Plug the USB stick into your computer.
-2. Open a Terminal (Linux/Mac) or Command Prompt (Windows).
-3. Navigate to the USB stick, into the `updater` directory:
-   ```bash
-   cd D:\updater
-   ```
-   *(Replace `D:` with your actual USB drive letter)*
-4. Run the tool:
-   ```bash
-   python3 updater.py
-   ```
-5. Follow the on-screen menu to select the specific files you wish to update.
-6. If the download stalls or crashes, **do not panic**. Wait for your internet to return, run `python3 updater.py` again, and select the same file. It will instantly resume from its exact stopping point using the HTTP `Range` header.
+```bash
+bash <(curl -sL https://raw.githubusercontent.com/jlesterak/Lighthouse/master/setup.sh)
+```
+
+1. Select Option **1** from the menu to launch the ZIM downloader.
+2. Follow the on-screen menu to select the specific files you wish to update, such as offline Wikipedia, Medical Libraries, or OpenStreetMap.
+3. If the download stalls or crashes, **do not panic**. Wait for your internet to return, run `setup.sh` again, and select the same file. It will instantly resume from its exact stopping point using the HTTP `Range` header.
+
+You can also run the updater directly via `python3 updater.py` if you prefer bypassing the menu.

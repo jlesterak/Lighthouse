@@ -43,7 +43,11 @@ The bootable operating system is explicitly generated using Debian's `live-build
   - `aria2` and `python3` are included for running the updater tools from within the live environment.
   - The desktop background is customized to display clear visual instructions on how to use the software.
 
-## 4. The Updater Workflow (`updater.py`)
+## 4. The Unified Orchestrator (`setup.sh`)
+
+Lighthouse provides a simple, interactive `setup.sh` orchestrator script. This single entrypoint allows users to build the entire project locally without needing to manually invoke the underlying bash/python scripts mapping to individual components (`build_iso.sh`, `updater.py`, etc.). The script can be executed securely via `curl` to silently handle bootstrapping the git repository.
+
+## 5. The Updater Workflow (`updater.py`)
 
 Because Lighthouse is designed for users preparing for off-grid or emergency scenarios, the internet connections available for downloading massive datasets may be highly unstable (satellite internet, weak 4G/LTE/Ham mesh, etc.).
 

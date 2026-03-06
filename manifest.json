@@ -97,6 +97,20 @@
           "size_approx": "50MB"
         }
       ]
+    },
+    {
+      "id": "maps",
+      "name": "Offline Maps & Navigation",
+      "description": "Offline geospatial data and geofence references.",
+      "items": [
+        {
+          "id": "openstreetmap_wiki",
+          "name": "OpenStreetMap Wiki",
+          "description": "The complete OpenStreetMap descriptive wiki data.",
+          "catalog_query": "openstreetmap-wiki_en_all_maxi",
+          "size_approx": "1GB"
+        }
+      ]
     }
   ]
 }
