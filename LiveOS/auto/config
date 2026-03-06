@@ -10,8 +10,6 @@ lb config noauto \
     --system live \
     --architectures "$TARGET_ARCH" \
     --linux-flavours "$TARGET_ARCH" \
-    --security true \
-    --updates true \
     --distribution bookworm \
     --archive-areas "main contrib non-free non-free-firmware" \
     --apt-indices false \
