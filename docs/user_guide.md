@@ -58,6 +58,6 @@ bash <(curl -sL https://raw.githubusercontent.com/jlesterak/Lighthouse/master/se
 
 1. Select Option **1** from the menu to launch the ZIM downloader.
 2. Follow the on-screen menu to select the specific files you wish to update, such as offline Wikipedia, Medical Libraries, or OpenStreetMap.
-3. If the download stalls or crashes, **do not panic**. Wait for your internet to return, run `setup.sh` again, and select the same file. It will instantly resume from its exact stopping point using the HTTP `Range` header.
+3. If the connection drops, the updater retries on its own (backing off up to a minute between tries) and resumes from the exact byte it stopped at. If it gives up, or you press Ctrl+C, just run it again later and select the same file: it resumes from the `.part` file using the HTTP `Range` header.
 
 You can also run the updater directly via `python3 updater.py` if you prefer bypassing the menu.

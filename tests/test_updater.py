@@ -1,0 +1,206 @@
+"""
+Tests for updater.py. Standard library only, no network access:
+run with `python3 -m unittest discover -s tests` from the repo root.
+"""
+
+import http.server
+import os
+import sys
+import tempfile
+import threading
+import unittest
+from contextlib import redirect_stdout
+from io import StringIO
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+import updater  # noqa: E402
+
+PAYLOAD = bytes(range(256)) * 400  # 100 KiB
+
+
+class FileHandler(http.server.BaseHTTPRequestHandler):
+    """Serves PAYLOAD. Behaviour is switched through class attributes."""
+    honor_range = True
+    truncate_first_get_at = None  # close the connection early once, after N bytes
+    gets = 0
+
+    def log_message(self, *args):
+        pass
+
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_header("Content-Length", str(len(PAYLOAD)))
+        self.end_headers()
+
+    def do_GET(self):
+        cls = type(self)
+        cls.gets += 1
+        start = 0
+        range_header = self.headers.get("Range")
+        if range_header and cls.honor_range:
+            start = int(range_header.split("=")[1].rstrip("-"))
+            self.send_response(206)
+            self.send_header("Content-Range", f"bytes {start}-{len(PAYLOAD) - 1}/{len(PAYLOAD)}")
+        else:
+            self.send_response(200)
+        body = PAYLOAD[start:]
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        if cls.truncate_first_get_at is not None and cls.gets == 1:
+            self.wfile.write(body[:cls.truncate_first_get_at])
+            return  # handler returns, server closes the socket mid-body
+        self.wfile.write(body)
+
+
+class DownloadTests(unittest.TestCase):
+    def setUp(self):
+        FileHandler.honor_range = True
+        FileHandler.truncate_first_get_at = None
+        FileHandler.gets = 0
+        self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), FileHandler)
+        threading.Thread(target=self.server.serve_forever, daemon=True).start()
+        self.url = f"http://127.0.0.1:{self.server.server_port}/file.zim"
+        self.tmp = tempfile.TemporaryDirectory()
+        self.target = os.path.join(self.tmp.name, "file.zim")
+
+    def tearDown(self):
+        self.server.shutdown()
+        self.server.server_close()
+        self.tmp.cleanup()
+
+    def download(self, **kwargs):
+        with redirect_stdout(StringIO()):
+            return updater.download_file(self.url, self.target, max_backoff=0, **kwargs)
+
+    def read_target(self):
+        with open(self.target, "rb") as f:
+            return f.read()
+
+    def write_part(self, data):
+        with open(self.target + ".part", "wb") as f:
+            f.write(data)
+
+    def test_fresh_download(self):
+        self.assertTrue(self.download())
+        self.assertEqual(self.read_target(), PAYLOAD)
+        self.assertFalse(os.path.exists(self.target + ".part"))
+
+    def test_resumes_partial_file(self):
+        self.write_part(PAYLOAD[:1000])
+        self.assertTrue(self.download())
+        self.assertEqual(self.read_target(), PAYLOAD)
+
+    def test_server_ignoring_range_restarts_instead_of_appending(self):
+        FileHandler.honor_range = False
+        self.write_part(PAYLOAD[:1000])
+        self.assertTrue(self.download())
+        self.assertEqual(self.read_target(), PAYLOAD)
+
+    def test_early_close_is_retried_not_renamed(self):
+        FileHandler.truncate_first_get_at = 5000
+        self.assertTrue(self.download())
+        self.assertEqual(self.read_target(), PAYLOAD)
+        self.assertEqual(FileHandler.gets, 2)
+
+    def test_gives_up_after_max_retries_and_keeps_part(self):
+        self.url = "http://127.0.0.1:9/unreachable.zim"
+        self.write_part(PAYLOAD[:1000])
+        self.assertFalse(self.download(max_retries=1))
+        self.assertFalse(os.path.exists(self.target))
+        self.assertTrue(os.path.exists(self.target + ".part"))
+
+    def test_complete_part_file_is_finalised(self):
+        self.write_part(PAYLOAD)
+        self.assertTrue(self.download())
+        self.assertEqual(self.read_target(), PAYLOAD)
+        self.assertEqual(FileHandler.gets, 0)
+
+    def test_replaces_existing_target(self):
+        with open(self.target, "wb") as f:
+            f.write(b"old")
+        self.assertTrue(self.download())
+        self.assertEqual(self.read_target(), PAYLOAD)
+
+
+OPDS_FEED = b"""<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <title>Wikipedia</title>
+    <summary>Maxi</summary>
+    <name>wikipedia_en_all</name>
+    <flavour>maxi</flavour>
+    <link rel="http://opds-spec.org/acquisition/open-access" type="application/x-zim"
+          href="https://lb.download.kiwix.org/zim/wikipedia/wikipedia_en_all_maxi_2026-08.zim.meta4"
+          length="127418088448"/>
+  </entry>
+  <entry>
+    <title>Wikipedia</title>
+    <summary>No pictures</summary>
+    <name>wikipedia_en_all</name>
+    <flavour>nopic</flavour>
+    <link rel="http://opds-spec.org/acquisition/open-access" type="application/x-zim"
+          href="https://lb.download.kiwix.org/zim/wikipedia/wikipedia_en_all_nopic_2026-06.zim.meta4"
+          length="52690707456"/>
+  </entry>
+  <entry>
+    <title>Medicine</title>
+    <name>zimgit-medicine_en</name>
+    <flavour></flavour>
+    <link rel="http://opds-spec.org/acquisition/open-access" type="application/x-zim"
+          href="https://lb.download.kiwix.org/zim/other/zimgit-medicine_en_2024-08.zim.meta4"/>
+  </entry>
+  <entry>
+    <title>No download link</title>
+    <name>broken</name>
+  </entry>
+</feed>
+"""
+
+
+class CatalogTests(unittest.TestCase):
+    def test_parse_opds_entries(self):
+        entries = updater.parse_opds_entries(OPDS_FEED)
+        self.assertEqual(len(entries), 3)
+        maxi = entries[0]
+        self.assertEqual(maxi["catalog_name"], "wikipedia_en_all")
+        self.assertEqual(maxi["flavour"], "maxi")
+        self.assertEqual(maxi["url"], "https://lb.download.kiwix.org/zim/wikipedia/wikipedia_en_all_maxi_2026-08.zim")
+        self.assertEqual(maxi["filename"], "wikipedia_en_all_maxi_2026-08.zim")
+        self.assertEqual(maxi["size_approx"], "118.67 GB")
+        self.assertEqual(entries[2]["flavour"], "")
+        self.assertEqual(entries[2]["size_approx"], "Unknown size")
+
+    def test_resolve_picks_matching_flavour(self):
+        original = updater.fetch_catalog
+        updater.fetch_catalog = lambda params, timeout=30: updater.parse_opds_entries(OPDS_FEED)
+        try:
+            with redirect_stdout(StringIO()):
+                self.assertEqual(updater.resolve_catalog_item("wikipedia_en_all", "nopic")[1],
+                                 "wikipedia_en_all_nopic_2026-06.zim")
+                self.assertEqual(updater.resolve_catalog_item("zimgit-medicine_en")[1],
+                                 "zimgit-medicine_en_2024-08.zim")
+                self.assertEqual(updater.resolve_catalog_item("wikipedia_en_all", "mini"), (None, None))
+        finally:
+            updater.fetch_catalog = original
+
+    def test_manifest_items_are_well_formed(self):
+        manifest = updater.load_manifest()
+        ids = set()
+        for category in manifest["categories"]:
+            for item in category["items"]:
+                for key in ("id", "name", "description", "catalog_name", "flavour", "size_approx"):
+                    self.assertIn(key, item, f"{item.get('id')} missing {key}")
+                self.assertNotIn(item["id"], ids)
+                ids.add(item["id"])
+
+
+class FormatBytesTests(unittest.TestCase):
+    def test_units(self):
+        self.assertEqual(updater.format_bytes(500), "500.00 B")
+        self.assertEqual(updater.format_bytes(1536), "1.50 KB")
+        self.assertEqual(updater.format_bytes(3 * 2**40), "3.00 TB")
+        self.assertEqual(updater.format_bytes(2**52), "4096.00 TB")
+
+
+if __name__ == "__main__":
+    unittest.main()

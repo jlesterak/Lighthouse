@@ -15,8 +15,21 @@ import urllib.error
 import xml.etree.ElementTree as ET
 import time
 
-MANIFEST_FILE = "manifest.json"
-CONTENT_DIR = "content"
+# Resolve paths next to this script so it works from any working directory,
+# including when run straight off the USB stick.
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MANIFEST_FILE = os.path.join(BASE_DIR, "manifest.json")
+CONTENT_DIR = os.path.join(BASE_DIR, "content")
+
+CATALOG_URL = "https://library.kiwix.org/catalog/v2/entries"
+ACQUISITION_REL = "http://opds-spec.org/acquisition/open-access"
+OPDS_NS = {'atom': 'http://www.w3.org/2005/Atom'}
+
+# How hard to keep trying before giving up on a flaky connection
+MAX_RETRIES = 10
+MAX_BACKOFF = 60
+CHUNK_SIZE = 8192 * 4  # 32KB chunks
+
 
 def load_manifest():
     if not os.path.exists(MANIFEST_FILE):
@@ -30,227 +43,184 @@ def format_bytes(size):
     power = 2**10
     n = 0
     power_labels = {0 : '', 1: 'K', 2: 'M', 3: 'G', 4: 'T'}
-    while size > power:
+    while size > power and n < 4:
         size /= power
         n += 1
     return f"{size:.2f} {power_labels[n]}B"
 
-def download_file(url, target_path):
-    """
-    Downloads a file with HTTP Range support for resuming.
-    """
-    temp_path = target_path + ".part"
-    
-    # Check if a partial download already exists
-    local_size = 0
-    if os.path.exists(temp_path):
-        local_size = os.path.getsize(temp_path)
+def get_remote_size(url):
+    """Returns the Content-Length from a HEAD request, or None if the server omits it."""
+    req = urllib.request.Request(url, method="HEAD")
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        total_size_str = resp.headers.get("Content-Length")
+    return int(total_size_str) if total_size_str else None
 
-    try:
-        req = urllib.request.Request(url, method="HEAD")
-        with urllib.request.urlopen(req) as resp:
-            total_size_str = resp.headers.get("Content-Length")
-            supports_ranges = resp.headers.get("Accept-Ranges") == "bytes"
-            
-            if total_size_str:
-                total_size = int(total_size_str)
-            else:
-                total_size = None
-                
-    except urllib.error.URLError as e:
-        print(f"\nError connecting to server for {url}: {e}")
-        return False
+def _download_attempt(url, temp_path, total_size):
+    """
+    One pass at fetching the file into temp_path, resuming if possible.
+    Returns True when the file is complete. Raises OSError (which includes
+    URLError and socket timeouts) on network trouble.
+    """
+    local_size = os.path.getsize(temp_path) if os.path.exists(temp_path) else 0
 
     if local_size > 0:
         if total_size and local_size == total_size:
-            print("Download already complete (found in .part file). Moving to final destination.")
-            os.rename(temp_path, target_path)
             return True
-        elif total_size and local_size > total_size:
+        if total_size and local_size > total_size:
             print("Local file is larger than remote file. Corrupted? Deleting and starting over.")
-            os.remove(temp_path)
             local_size = 0
-        elif supports_ranges:
-            print(f"Resuming download from byte {local_size}...")
         else:
-            print("Server does not support resuming. Starting from scratch.")
-            local_size = 0
-            if os.path.exists(temp_path):
-                os.remove(temp_path)
+            print(f"Resuming download from byte {local_size}...")
 
-    # Build the actual request
     req = urllib.request.Request(url)
-    if local_size > 0 and supports_ranges:
+    if local_size > 0:
         req.add_header("Range", f"bytes={local_size}-")
 
-    print(f"Starting download to {temp_path}")
-    print("Press Ctrl+C to safely pause/abort the download.")
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        if local_size > 0 and resp.status != 206:
+            # Server doesn't support resuming and is sending the whole file;
+            # appending it would corrupt the download.
+            print("Server does not support resuming. Starting from scratch.")
+            local_size = 0
 
-    mode = "ab" if local_size > 0 and supports_ranges else "wb"
-    
-    try:
-        with urllib.request.urlopen(req, timeout=30) as resp, open(temp_path, mode) as out_file:
+        mode = "ab" if local_size > 0 else "wb"
+        with open(temp_path, mode) as out_file:
             start_time = time.time()
             bytes_downloaded_session = 0
-            
+
             while True:
-                chunk = resp.read(8192 * 4) # 32KB chunks
+                chunk = resp.read(CHUNK_SIZE)
                 if not chunk:
                     break
-                    
+
                 out_file.write(chunk)
                 bytes_downloaded_session += len(chunk)
                 current_total = local_size + bytes_downloaded_session
-                
+
                 # Simple progress bar
                 elapsed = time.time() - start_time
                 speed = bytes_downloaded_session / elapsed if elapsed > 0 else 0
-                
+
                 if total_size:
                     percent = (current_total / total_size) * 100
                     sys.stdout.write(f"\rProgress: [{percent:.1f}%] {format_bytes(current_total)} / {format_bytes(total_size)} | Speed: {format_bytes(speed)}/s")
                 else:
                     sys.stdout.write(f"\rDownloaded: {format_bytes(current_total)} | Speed: {format_bytes(speed)}/s")
                 sys.stdout.flush()
-                
-    except KeyboardInterrupt:
-        print("\n\nDownload paused by user. Run the script again to resume.")
-        return False
-    except urllib.error.URLError as e:
-        print(f"\n\nNetwork error: {e}")
-        print("Download interrupted. Run the script again later to resume.")
-        return False
-    except Exception as e:
-        print(f"\n\nUnexpected error: {e}")
-        return False
+
+    final_size = os.path.getsize(temp_path)
+    if total_size and final_size < total_size:
+        # The connection closed cleanly but early; treat it as an interruption
+        raise ConnectionError(f"connection closed at {final_size} of {total_size} bytes")
+    return True
+
+def download_file(url, target_path, max_retries=MAX_RETRIES, max_backoff=MAX_BACKOFF):
+    """
+    Downloads a file with HTTP Range support for resuming. Retries network
+    failures automatically with exponential backoff, resuming each time.
+    """
+    temp_path = target_path + ".part"
+
+    print(f"Starting download to {temp_path}")
+    print("Press Ctrl+C to safely pause/abort the download.")
+
+    attempt = 0
+    while True:
+        try:
+            total_size = get_remote_size(url)
+            if _download_attempt(url, temp_path, total_size):
+                break
+        except KeyboardInterrupt:
+            print("\n\nDownload paused by user. Run the script again to resume.")
+            return False
+        except OSError as e:
+            attempt += 1
+            if attempt > max_retries:
+                print(f"\n\nNetwork error: {e}")
+                print(f"Gave up after {max_retries} retries. Run the script again later to resume.")
+                return False
+            delay = min(2 ** attempt, max_backoff)
+            print(f"\n\nNetwork error: {e}")
+            print(f"Retrying in {delay}s (attempt {attempt}/{max_retries})...")
+            try:
+                time.sleep(delay)
+            except KeyboardInterrupt:
+                print("\nDownload paused by user. Run the script again to resume.")
+                return False
 
     print("\nDownload finished successfully.")
-    
-    # If a previous fully downloaded file exists, remove it
-    if os.path.exists(target_path):
-        os.remove(target_path)
-        
-    os.rename(temp_path, target_path)
+    # os.replace overwrites an existing file on every platform, including Windows
+    os.replace(temp_path, target_path)
     return True
+
+def parse_opds_entries(xml_data):
+    """
+    Parses a Kiwix OPDS v2 feed into a list of dicts with the catalog name,
+    flavour, title, description, direct download URL, filename and size.
+    Entries without a download link are skipped.
+    """
+    root = ET.fromstring(xml_data)
+    results = []
+
+    for entry in root.findall('atom:entry', OPDS_NS):
+        def text(tag, default=""):
+            node = entry.find(f'atom:{tag}', OPDS_NS)
+            return node.text if node is not None and node.text else default
+
+        for link in entry.findall('atom:link', OPDS_NS):
+            href = link.get('href')
+            if link.get('rel') != ACQUISITION_REL or not href:
+                continue
+
+            # The catalog links a Metalink file; the ZIM sits at the same URL minus .meta4
+            download_url = href[:-6] if href.endswith('.meta4') else href
+            filename = download_url.split('/')[-1].split('?')[0]
+            length = link.get('length')
+
+            results.append({
+                'catalog_name': text('name'),
+                'flavour': text('flavour'),
+                'name': text('title', "Unknown Title"),
+                'description': text('summary'),
+                'url': download_url,
+                'filename': filename,
+                'size_approx': format_bytes(int(length)) if length and length.isdigit() else "Unknown size",
+            })
+            break
+
+    return results
+
+def fetch_catalog(params, timeout=30):
+    url = f"{CATALOG_URL}?{urllib.parse.urlencode(params)}"
+    with urllib.request.urlopen(url, timeout=timeout) as resp:
+        return parse_opds_entries(resp.read())
 
 def search_kiwix_library(query):
     print(f"\nSearching Kiwix library for '{query}'...")
-    encoded_query = urllib.parse.quote(query)
-    url = f"https://library.kiwix.org/catalog/v2/entries?q={encoded_query}&count=20"
-    
     try:
-        req = urllib.request.Request(url)
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            xml_data = resp.read()
-    except Exception as e:
+        return fetch_catalog({'q': query, 'count': 20}, timeout=15)
+    except (OSError, ET.ParseError) as e:
         print(f"Error querying Kiwix API: {e}")
         return []
-        
-    try:
-        root = ET.fromstring(xml_data)
-    except ET.ParseError as e:
-        print(f"Error parsing API response: {e}")
-        return []
-        
-    ns = {'atom': 'http://www.w3.org/2005/Atom'}
-    results = []
-    
-    for entry in root.findall('atom:entry', ns):
-        title_node = entry.find('atom:title', ns)
-        summary_node = entry.find('atom:summary', ns)
-        
-        title = title_node.text if title_node is not None else "Unknown Title"
-        summary = summary_node.text if summary_node is not None else ""
-        
-        download_url = None
-        size_approx = "Unknown size"
-        
-        for link in entry.findall('atom:link', ns):
-            rel = link.get('rel')
-            href = link.get('href')
-            if rel == 'http://opds-spec.org/acquisition/open-access' and href:
-                if href.endswith('.meta4'):
-                    download_url = href[:-6]
-                else:
-                    download_url = href
-                    
-                length = link.get('length')
-                if length and length.isdigit():
-                    size_approx = format_bytes(int(length))
-                break
-                
-        if download_url:
-            filename = download_url.split('/')[-1]
-            if '?' in filename:
-                filename = filename.split('?')[0]
-                
-            results.append({
-                'name': title,
-                'description': summary,
-                'url': download_url,
-                'size_approx': size_approx,
-                'filename': filename
-            })
-            
-    return results
 
-def get_exact_zim(query):
+def resolve_catalog_item(catalog_name, flavour=""):
     """
-    Downloads the full Kiwix catalog XML and searches it locally.
-    This guarantees 100% precision for matching exact names and flavours,
-    since the Kiwix search API ignores exact string tokens.
+    Finds the latest download for an exact catalog name and flavour.
+    The catalog's `name` filter is an exact match, unlike the `q` search.
+    Returns (download_url, filename), or (None, None) if not found.
     """
-    url = "https://library.kiwix.org/catalog/v2/entries"
-    
-    parts = query.rsplit('_', 1)
-    
-    if len(parts) == 2:
-        flavor_test = parts[1]
-        if flavor_test in ['maxi', 'mini', 'nopic', 'novid']:
-            target_name = parts[0]
-            target_flavor = flavor_test
-        else:
-            target_name = query
-            target_flavor = "None"
-    else:
-        target_name = query
-        target_flavor = "None"
-
-    print(f"\nDownloading Kiwix primary catalog for exact matching...")
-    url = "https://library.kiwix.org/catalog/root.xml"
-    ns = {'atom': 'http://www.w3.org/2005/Atom'}
-
     try:
-        req = urllib.request.Request(url)
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            xml_data = resp.read()
-        root = ET.fromstring(xml_data)
-    except Exception as e:
-        print(f"\nError fetching or parsing catalog search: {e}")
+        entries = fetch_catalog({'name': catalog_name, 'count': -1})
+    except (OSError, ET.ParseError) as e:
+        print(f"\nError fetching the Kiwix catalog: {e}")
         return None, None
 
-    for entry in root.findall('atom:entry', ns):
-        name_node = entry.find('atom:name', ns)
-        flavour_node = entry.find('atom:flavour', ns)
-        
-        entry_name = name_node.text if name_node is not None else "None"
-        entry_flavour = flavour_node.text if flavour_node is not None else "None"
-        
-        if entry_name == target_name:
-            if target_flavor != "None" and entry_flavour != target_flavor:
-                continue
-                
-            for link in entry.findall('atom:link', ns):
-                if link.get('rel') == 'http://opds-spec.org/acquisition/open-access':
-                    href = link.get('href', '')
-                    if href.endswith('.meta4'):
-                        download_url = href[:-6]
-                        filename = download_url.split('/')[-1]
-                        if '?' in filename:
-                            filename = filename.split('?')[0]
-                        return download_url, filename
-                        
-    print("\n  Search returned results, but no exact name/flavor match found.")
+    for entry in entries:
+        if entry['catalog_name'] == catalog_name and entry['flavour'] == flavour:
+            return entry['url'], entry['filename']
+
+    available = ", ".join(sorted(e['flavour'] or "(none)" for e in entries)) or "none"
+    print(f"\n  No catalog entry for {catalog_name} with flavour '{flavour or '(none)'}'. Flavours available: {available}")
     return None, None
 
 def print_menu(manifest):
@@ -367,9 +337,9 @@ def main():
                 continue
             
         for selected in selected_items:
-            if 'catalog_query' in selected:
+            if 'catalog_name' in selected and 'url' not in selected:
                 print(f"\nResolving latest version of {selected['name']} via Kiwix catalog...")
-                url_to_download, filename = get_exact_zim(selected['catalog_query'])
+                url_to_download, filename = resolve_catalog_item(selected['catalog_name'], selected.get('flavour', ''))
                 
                 if not url_to_download:
                     print(f"Failed to find {selected['name']} in the Kiwix catalog. Skipping.")

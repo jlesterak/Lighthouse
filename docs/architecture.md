@@ -58,6 +58,12 @@ The `updater.py` tool utilizes HTTP `Range` headers. When starting a download:
 1. It queries the server for the total file size (`Content-Length`).
 2. It checks if the file already exists locally. If it does, it checks the local file's byte size.
 3. It sends a request with the header `Range: bytes={LOCAL_SIZE}-`
-4. The server responds with HTTP 206 (Partial Content), and the script appends the incoming stream directly to the file on disk.
+4. The server responds with HTTP 206 (Partial Content), and the script appends the incoming stream directly to the `.part` file on disk.
 
-This allows the user to simply re-run `python3 updater.py` if their connection drops, and the download instantly resumes from the exact byte it failed on.
+5. If the server answers 200 instead of 206 (it ignored the `Range` header), the partial file is discarded and the download restarts, so the whole body is never appended to a partial file.
+6. If the connection drops or closes before `Content-Length` bytes arrive, the updater retries automatically with exponential backoff (up to 10 tries, capped at 60s), resuming each time. The `.part` file is only renamed to the final `.zim` once it is complete.
+
+If it does give up, the user can simply re-run `python3 updater.py` later, and the download resumes from the exact byte it stopped on.
+
+### Catalog lookup
+Manifest items name a Kiwix catalog `name` and `flavour` rather than a fixed URL, since Kiwix publishes new dated releases (`wikipedia_en_all_maxi_2026-08.zim`) and removes old ones. The updater queries `https://library.kiwix.org/catalog/v2/entries?name=<name>` (an exact match), picks the entry with the matching flavour, and downloads the ZIM behind its Metalink link.

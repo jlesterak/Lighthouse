@@ -9,15 +9,17 @@
           "id": "wikipedia_en_all_maxi",
           "name": "Wikipedia (All, with images)",
           "description": "The entire English Wikipedia including all images. Extremely large.",
-          "catalog_query": "wikipedia_en_all_maxi",
-          "size_approx": "100GB"
+          "catalog_name": "wikipedia_en_all",
+          "flavour": "maxi",
+          "size_approx": "127GB"
         },
         {
           "id": "wikipedia_en_all_nopic",
           "name": "Wikipedia (All, text only)",
           "description": "The entire English Wikipedia, stripped of images to save space.",
-          "catalog_query": "wikipedia_en_all_nopic",
-          "size_approx": "50GB"
+          "catalog_name": "wikipedia_en_all",
+          "flavour": "nopic",
+          "size_approx": "53GB"
         }
       ]
     },
@@ -30,14 +32,16 @@
           "id": "wikimed_en_all_maxi",
           "name": "WikiMed",
           "description": "The largest and most comprehensive medical offline encyclopedia.",
-          "catalog_query": "wikimed_en_all_maxi",
-          "size_approx": "2.5GB"
+          "catalog_name": "mdwiki_en_all",
+          "flavour": "maxi",
+          "size_approx": "2.3GB"
         },
         {
           "id": "medical_library",
           "name": "Medical Library",
           "description": "A collection of books pertaining to field and emergency medicine.",
-          "catalog_query": "zimgit-medicine_en",
+          "catalog_name": "zimgit-medicine_en",
+          "flavour": "",
           "size_approx": "70MB"
         }
       ]
@@ -51,15 +55,41 @@
           "id": "cd3wd",
           "name": "CD3WD Project (Agriculture & Tech)",
           "description": "Massive collection of 3rd world development texts covering agriculture, water, sanitation, and construction.",
-          "catalog_query": "cd3wd_en_all",
-          "size_approx": "15GB"
+          "catalog_name": "cd3wdproject.org_en_all",
+          "flavour": "",
+          "size_approx": "580MB"
         },
         {
-          "id": "wikihow_en",
-          "name": "WikiHow",
-          "description": "Countless how-to guides for building, repairing, and basic tasks.",
-          "catalog_query": "wikihow_en_all_maxi",
-          "size_approx": "35GB"
+          "id": "ifixit_en",
+          "name": "iFixit Repair Guides",
+          "description": "Step-by-step repair guides for electronics, appliances, vehicles and tools.",
+          "catalog_name": "ifixit_en_all",
+          "flavour": "",
+          "size_approx": "3.6GB"
+        },
+        {
+          "id": "post_disaster",
+          "name": "Post-Disaster Resources",
+          "description": "Library of guides on shelter, sanitation, first aid and recovery after a disaster.",
+          "catalog_name": "zimgit-post-disaster_en",
+          "flavour": "",
+          "size_approx": "645MB"
+        },
+        {
+          "id": "water",
+          "name": "Water Treatment",
+          "description": "Collection of guides on finding, purifying and storing drinking water.",
+          "catalog_name": "zimgit-water_en",
+          "flavour": "",
+          "size_approx": "21MB"
+        },
+        {
+          "id": "food_preparation",
+          "name": "Food Preparation",
+          "description": "Guides on cooking, preserving and storing food.",
+          "catalog_name": "zimgit-food-preparation_en",
+          "flavour": "",
+          "size_approx": "98MB"
         }
       ]
     },
@@ -72,29 +102,33 @@
           "id": "stackexchange_serverfault",
           "name": "ServerFault StackExchange",
           "description": "Questions and answers for system and network administrators.",
-          "catalog_query": "stackexchange_en_serverfault_all",
-          "size_approx": "500MB"
+          "catalog_name": "serverfault.com_en_all",
+          "flavour": "",
+          "size_approx": "1.6GB"
         },
         {
           "id": "stackexchange_ubuntu",
           "name": "AskUbuntu StackExchange",
           "description": "Essential troubleshooting for Linux systems.",
-          "catalog_query": "stackexchange_en_askubuntu_all",
-          "size_approx": "1.5GB"
+          "catalog_name": "askubuntu.com_en_all",
+          "flavour": "",
+          "size_approx": "2.8GB"
         },
         {
           "id": "stackexchange_electronics",
           "name": "Electrical Engineering StackExchange",
           "description": "Electronics repair and design.",
-          "catalog_query": "stackexchange_en_electronics_all",
-          "size_approx": "800MB"
+          "catalog_name": "electronics.stackexchange.com_en_all",
+          "flavour": "",
+          "size_approx": "4.2GB"
         },
         {
           "id": "stackexchange_amateur_radio",
           "name": "Amateur (Ham) Radio StackExchange",
           "description": "Emergency comms troubleshooting and antenna building.",
-          "catalog_query": "stackexchange_en_ham_all",
-          "size_approx": "50MB"
+          "catalog_name": "ham.stackexchange.com_en_all",
+          "flavour": "",
+          "size_approx": "76MB"
         }
       ]
     },
@@ -107,8 +141,9 @@
           "id": "openstreetmap_wiki",
           "name": "OpenStreetMap Wiki",
           "description": "The complete OpenStreetMap descriptive wiki data.",
-          "catalog_query": "openstreetmap-wiki_en_all_maxi",
-          "size_approx": "1GB"
+          "catalog_name": "openstreetmap-wiki_en_all",
+          "flavour": "maxi",
+          "size_approx": "1.2GB"
         }
       ]
     }

@@ -5,12 +5,6 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- Updater catalog lookup is broken: `catalog/root.xml` is now a 429-byte navigation stub,
-  so no manifest item resolves. Five manifest names are also stale (WikiMed → mdwiki,
-  CD3WD, WikiHow gone, StackExchange naming).
-- Updater robustness: a server that ignores `Range` (200 instead of 206) corrupts the
-  file by appending the whole body; the HEAD request has no timeout; `os.rename` fails on
-  Windows when the target exists; paths are relative to the working directory.
 - `get_readers.sh` pins old versions (Android 3.9.2 now 404s) and a hard-coded Windows
   folder name.
 - arm64 cross-build: no qemu-user-static/binfmt setup, and syslinux doesn't exist on arm64.
@@ -29,6 +23,13 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: Updater fixed and tested. Catalog lookup uses the exact `?name=` API
+  (`root.xml` had become a stub, so nothing resolved); manifest moved to
+  `catalog_name` + `flavour` with current names, all 14 items verified live; WikiHow (gone
+  from Kiwix) replaced by iFixit, plus post-disaster, water and food-preparation ZIMs.
+  Downloads retry with backoff, restart instead of corrupting when a server ignores
+  `Range`, never finalise a short file, and use `os.replace`. Paths are relative to the
+  script. `tests/test_updater.py` covers all of it (stdlib only, no network).
 - 2026-09-30: Live OS ships Kiwix: `kiwix` (kiwix-desktop 2.3.0 in bookworm) and
   `kiwix-tools` (`kiwix-serve`) added to the package list.
 - 2026-09-30: Live OS auto-mount fixed: the mount script now looks for `LIGHTHOUSE` (exFAT

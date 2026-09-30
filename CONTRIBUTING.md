@@ -10,8 +10,8 @@ Lighthouse relies on high-quality, Free and Open Source datasets (primarily in t
 
 **To add a resource:**
 1. Ensure the resource is legally distributable (Public Domain, Creative Commons, GPL, etc.).
-2. Locate a reliable download link (preferably a ZIM file from Kiwix).
-3. Open a Pull Request adding the new entry to our `manifest.json`.
+2. Find it in the Kiwix catalog. The updater looks items up by their exact catalog `name` and `flavour`, so it always gets the latest release. Check the name with `https://library.kiwix.org/catalog/v2/entries?name=<name>` (the `<name>` and `<flavour>` fields of the result are what goes in the manifest; use `""` when there is no flavour).
+3. Open a Pull Request adding the new entry to our `manifest.json` (`id`, `name`, `description`, `catalog_name`, `flavour`, `size_approx`).
 
 ### 2. Improving the Custom Live OS
 
@@ -43,7 +43,7 @@ Documentation is the lifeblood of this project. If you find a typo, an unclear s
 1. Fork the repository on GitHub.
 2. Create a new branch specifically for your feature or bug fix (`git checkout -b feature/my-new-feature`).
 3. Make your changes in your forked repository.
-4. Test your changes thoroughly. If you touched `manifest.json`, verify that `updater.py` still parses it correctly.
+4. Test your changes thoroughly. Run the test suite with `python3 -m unittest discover -s tests`. If you touched `manifest.json`, the suite checks its shape; also confirm each new item resolves in the live catalog.
 5. Push your branch to GitHub (`git push origin feature/my-new-feature`).
 6. Open a Pull Request against the main branch of the Lighthouse repository. Ensure your PR description clearly explains what you changed and why.
 
