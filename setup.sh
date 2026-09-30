@@ -17,7 +17,7 @@ if [ -d "Lighthouse" ] && [ -f "Lighthouse/setup.sh" ]; then
 fi
 
 echo "================================================="
-echo " Lighthouse Initialization & Build Tool"
+echo " Lighthouse Initialization & Build Tool v$(cat VERSION 2>/dev/null || echo unknown)"
 echo "================================================="
 
 while true; do

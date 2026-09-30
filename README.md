@@ -21,12 +21,15 @@ Lighthouse/
 │   └── user_guide.md     # How to use the Updater and Readers
 ├── LiveOS/               # Debian live-build configuration for the bootable OS
 ├── updater.py            # The cross-platform resilient download tool
+├── VERSION               # The project version (single source of truth)
 ├── manifest.json         # The catalog of available FOSS knowledge repositories
 ├── build_iso.sh          # The automated script to build the Live OS ISO
 ├── build_usb.sh          # The automated script to format and build the USB drive
 ├── get_readers.sh        # Utility script to download the Kiwix binaries
+├── tests/                # Updater test suite (python3 -m unittest discover -s tests)
+├── CHANGELOG.md          # Release history
 ├── LICENSE               # GPLv3 Open Source License
-└── CONTRIBUTING.md       # Guidelines for contributing to Lighthouse
+└── CONTRIBUTING.md       # Guidelines for contributing to Lighthouse (incl. releases)
 ```
 
 ## Getting Started

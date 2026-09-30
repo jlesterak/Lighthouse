@@ -4,6 +4,8 @@
 # We use XFCE for a very lightweight desktop environment
 
 TARGET_ARCH=${LB_ARCHITECTURE:-amd64}
+# ../VERSION is the single source of truth for the project version
+VERSION=$(cat ../VERSION 2>/dev/null || echo unknown)
 HOST_ARCH=$(dpkg --print-architecture)
 
 case "$TARGET_ARCH" in
@@ -29,6 +31,14 @@ if [ "$TARGET_ARCH" != "$HOST_ARCH" ]; then
     CROSS_OPTS="--bootstrap-qemu-arch $TARGET_ARCH --bootstrap-qemu-static /usr/bin/qemu-$QEMU_ARCH-static"
 fi
 
+# Stamp the version into the image; this file is regenerated on every build
+mkdir -p config/includes.chroot/etc
+cat > config/includes.chroot/etc/lighthouse-release <<EOF
+LIGHTHOUSE_VERSION=$VERSION
+LIGHTHOUSE_ARCH=$TARGET_ARCH
+LIGHTHOUSE_BUILD_DATE=$(date -u +%Y-%m-%d)
+EOF
+
 # shellcheck disable=SC2086
 lb config noauto \
     --mode debian \
@@ -37,6 +47,8 @@ lb config noauto \
     --linux-flavours "$TARGET_ARCH" \
     --bootloaders "$BOOTLOADERS" \
     --distribution bookworm \
+    --iso-volume "Lighthouse $VERSION $TARGET_ARCH" \
+    --iso-application "Lighthouse $VERSION" \
     --archive-areas "main contrib non-free non-free-firmware" \
     --apt-indices false \
     --apt-recommends false \

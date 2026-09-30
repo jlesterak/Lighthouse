@@ -19,6 +19,7 @@ import time
 # including when run straight off the USB stick.
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MANIFEST_FILE = os.path.join(BASE_DIR, "manifest.json")
+VERSION_FILE = os.path.join(BASE_DIR, "VERSION")
 CONTENT_DIR = os.path.join(BASE_DIR, "content")
 
 CATALOG_URL = "https://library.kiwix.org/catalog/v2/entries"
@@ -30,6 +31,14 @@ MAX_RETRIES = 10
 MAX_BACKOFF = 60
 CHUNK_SIZE = 8192 * 4  # 32KB chunks
 
+
+def get_version():
+    """The project version, from the VERSION file (the single source of truth)."""
+    try:
+        with open(VERSION_FILE, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except OSError:
+        return "unknown"
 
 def load_manifest():
     if not os.path.exists(MANIFEST_FILE):
@@ -225,7 +234,7 @@ def resolve_catalog_item(catalog_name, flavour=""):
 
 def print_menu(manifest):
     print("="*60)
-    print(" Lighthouse Offline Knowledge Updater")
+    print(f" Lighthouse Offline Knowledge Updater v{get_version()}")
     print("="*60)
     print(f"Content will be saved to: {os.path.abspath(CONTENT_DIR)}/\n")
     
@@ -365,4 +374,7 @@ def main():
         input("\nPress Enter to return to the menu...")
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] in ("--version", "-V"):
+        print(f"Lighthouse {get_version()}")
+        sys.exit(0)
     main()

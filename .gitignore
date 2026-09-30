@@ -27,3 +27,6 @@ LiveOS/config/source
 # Stock hooks are symlinks that `lb config` recreates; our own hooks are named *lighthouse*
 LiveOS/config/hooks/*/*
 !LiveOS/config/hooks/*/*lighthouse*
+
+# Generated at build time from VERSION
+LiveOS/config/includes.chroot/etc/lighthouse-release

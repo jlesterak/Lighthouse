@@ -5,6 +5,8 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
+- (you) Approve tagging: `v0.1.0` on 6e93a17 (the Gemini-era state) and `v0.2.0` on the
+  release commit. Tags need your OK under the global rules; nothing is pushed.
 - (needs a build machine) Build both ISOs end to end and boot them: amd64 in QEMU/real
   hardware, arm64 in QEMU (`qemu-system-aarch64` + UEFI). Nothing in `LiveOS/` has been
   verified by an actual build since the fixes below. Needs `live-build`, and `qemu-user-static`
@@ -16,6 +18,10 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: Versioning: root `VERSION` (0.2.0) is the single source of truth, read by
+  `updater.py --version`, `setup.sh`, the ISO (volume ID, `/etc/lighthouse-release`) and
+  copied to the stick. `CHANGELOG.md` added; a test keeps its top entry equal to `VERSION`.
+  Release steps in CONTRIBUTING.md.
 - 2026-09-30: `build_usb.sh` hardened: refuses partitions and any disk holding the running
   system (checked via lsblk mountpoints, so LUKS/LVM roots count), demands `yes-wipe` for
   non-removable disks, checks capacity, makes you type the device name. The data partition

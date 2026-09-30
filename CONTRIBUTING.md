@@ -50,3 +50,17 @@ Documentation is the lifeblood of this project. If you find a typo, an unclear s
 ## Code of Conduct
 
 Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms. We are committed to providing a welcoming, inclusive, and harassment-free environment for everyone.
+
+## Versioning and Releases
+
+`VERSION` in the repository root is the single source of truth for the version
+number ([Semantic Versioning](https://semver.org/)). Everything else reads it:
+`updater.py --version`, the `setup.sh` banner, the ISO volume ID and
+`/etc/lighthouse-release` inside the Live OS, and the copy on the USB stick.
+Never hard-code a version anywhere else.
+
+To cut a release:
+1. Update `VERSION` and add a matching `## [x.y.z] - YYYY-MM-DD` entry at the top of
+   `CHANGELOG.md` (the test suite fails if they disagree).
+2. Run `python3 -m unittest discover -s tests`.
+3. Commit as `chore: release vx.y.z`, then tag it: `git tag -a vx.y.z -m "Lighthouse x.y.z"`.

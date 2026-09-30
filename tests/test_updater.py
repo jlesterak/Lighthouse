@@ -194,6 +194,21 @@ class CatalogTests(unittest.TestCase):
                 ids.add(item["id"])
 
 
+class VersionTests(unittest.TestCase):
+    def test_version_is_semver(self):
+        self.assertRegex(updater.get_version(), r"^\d+\.\d+\.\d+$")
+
+    def test_changelog_top_entry_matches_version(self):
+        changelog = os.path.join(updater.BASE_DIR, "CHANGELOG.md")
+        with open(changelog, encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("## ["):
+                    self.assertEqual(line[4:line.index("]")], updater.get_version(),
+                                     "bump CHANGELOG.md together with VERSION")
+                    return
+        self.fail("CHANGELOG.md has no version entries")
+
+
 class FormatBytesTests(unittest.TestCase):
     def test_units(self):
         self.assertEqual(updater.format_bytes(500), "500.00 B")

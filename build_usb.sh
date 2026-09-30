@@ -156,7 +156,7 @@ if [ -d "readers" ]; then
   mkdir -p "$MOUNT_POINT/readers"
   cp -r readers/* "$MOUNT_POINT/readers/"
 fi
-for f in updater.py manifest.json; do
+for f in updater.py manifest.json VERSION; do
   if [ -f "$f" ]; then
     cp "$f" "$MOUNT_POINT/"
   fi
