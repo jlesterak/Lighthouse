@@ -5,8 +5,6 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- `get_readers.sh` pins old versions (Android 3.9.2 now 404s) and a hard-coded Windows
-  folder name.
 - arm64 cross-build: no qemu-user-static/binfmt setup, and syslinux doesn't exist on arm64.
 - `build_usb.sh` safety check only matches `/dev/sda` and `/dev/nvme0n1` by name.
 - Docs describe `Content/ Readers/ Updater/` on the stick; the script writes
@@ -23,6 +21,10 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: `get_readers.sh` fetches the latest readers through Kiwix's permalinks
+  (was pinned to 2.3.1 / Android 3.9.2, which 404s), keeps versioned downloads so resume
+  can't mix releases, records `readers/VERSIONS.txt`, and extracts the Windows zip
+  without assuming its folder name. Tested end to end with the Windows reader (2.5.1).
 - 2026-09-30: Updater fixed and tested. Catalog lookup uses the exact `?name=` API
   (`root.xml` had become a stub, so nothing resolved); manifest moved to
   `catalog_name` + `flavour` with current names, all 14 items verified live; WikiHow (gone

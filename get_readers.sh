@@ -1,12 +1,56 @@
 #!/bin/bash
 # Lighthouse Reader Downloader
-# Fetches the standalone Kiwix readers for Windows, Linux, and Android
+# Fetches the latest standalone Kiwix readers for Windows, Linux, and Android
 # dropping them into the `readers/` directory for the USB build.
 
-set -e
+set -euo pipefail
+
+cd "$(dirname "$0")"
 
 READERS_DIR="readers"
-mkdir -p "$READERS_DIR"
+DOWNLOAD_DIR="$READERS_DIR/.downloads"
+VERSIONS_FILE="$READERS_DIR/VERSIONS.txt"
+
+# Kiwix's unversioned permalinks redirect to the latest release
+ANDROID_URL="https://download.kiwix.org/release/kiwix-android/kiwix.apk"
+LINUX_URL="https://download.kiwix.org/release/kiwix-desktop/kiwix-desktop_x86_64.appimage"
+WIN_URL="https://download.kiwix.org/release/kiwix-desktop/kiwix-desktop_windows_x64.zip"
+
+for cmd in curl unzip; do
+    if ! command -v "$cmd" &> /dev/null; then
+        echo "Error: '$cmd' is required. Install it with: sudo apt install $cmd"
+        exit 1
+    fi
+done
+
+mkdir -p "$DOWNLOAD_DIR"
+touch "$VERSIONS_FILE"
+
+# fetch URL -> prints the local path of the versioned download.
+# Resolving the redirect first means each release gets its own file, so
+# resuming (-C -) never appends a new release onto an older one.
+fetch() {
+    local url=$1 real_url filename
+    real_url=$(curl -fsSIL -o /dev/null -w '%{url_effective}' "$url")
+    filename=$(basename "${real_url%%\?*}")
+    echo "  Latest release: $filename" >&2
+    curl -fL --retry 5 --retry-delay 5 -C - --progress-bar -o "$DOWNLOAD_DIR/$filename" "$real_url" >&2
+    echo "$DOWNLOAD_DIR/$filename"
+}
+
+# up_to_date NAME FILE -> true if VERSIONS.txt says NAME is already FILE
+up_to_date() {
+    grep -qxF "$1: $(basename "$2")" "$VERSIONS_FILE"
+}
+
+record_version() {
+    local tmp
+    tmp=$(mktemp)
+    grep -v "^$1: " "$VERSIONS_FILE" > "$tmp" || true
+    echo "$1: $(basename "$2")" >> "$tmp"
+    sort "$tmp" > "$VERSIONS_FILE"
+    rm -f "$tmp"
+}
 
 echo "======================================"
 echo " Lighthouse Reader Fetcher"
@@ -14,32 +58,53 @@ echo "======================================"
 echo "Downloading Kiwix binaries to $READERS_DIR/"
 
 # 1. Android APK
-echo "[1/3] Downloading Android APK..."
-ANDROID_URL="https://download.kiwix.org/release/kiwix-android/kiwix-3.9.2.apk"
-wget -c -q --show-progress -O "$READERS_DIR/kiwix-android.apk" "$ANDROID_URL"
+echo "[1/3] Android APK..."
+apk=$(fetch "$ANDROID_URL")
+if ! up_to_date android "$apk"; then
+    cp "$apk" "$READERS_DIR/kiwix-android.apk"
+    record_version android "$apk"
+fi
 
 # 2. Linux AppImage
-echo "[2/3] Downloading Linux AppImage..."
-LINUX_URL="https://download.kiwix.org/release/kiwix-desktop/kiwix-desktop_x86_64_2.3.1.appimage"
-wget -c -q --show-progress -O "$READERS_DIR/kiwix-desktop.AppImage" "$LINUX_URL"
-chmod +x "$READERS_DIR/kiwix-desktop.AppImage"
+echo "[2/3] Linux AppImage..."
+appimage=$(fetch "$LINUX_URL")
+if ! up_to_date linux "$appimage"; then
+    cp "$appimage" "$READERS_DIR/kiwix-desktop.AppImage"
+    chmod +x "$READERS_DIR/kiwix-desktop.AppImage"
+    record_version linux "$appimage"
+fi
 
-# 3. Windows Portable (ZIP)
-# We will download the ZIP and extract it so the user just sees an .exe
-echo "[3/3] Downloading Windows Portable..."
-WIN_URL="https://download.kiwix.org/release/kiwix-desktop/kiwix-desktop_windows_x64_2.3.1.zip"
-wget -c -q --show-progress -O "$READERS_DIR/kiwix-windows.zip" "$WIN_URL"
+# 3. Windows Portable (ZIP), extracted so the user just sees an .exe
+echo "[3/3] Windows Portable..."
+winzip=$(fetch "$WIN_URL")
+if ! up_to_date windows "$winzip"; then
+    echo "Extracting Windows binaries..."
+    extract_dir=$(mktemp -d "$DOWNLOAD_DIR/extract.XXXXXX")
+    unzip -q -o "$winzip" -d "$extract_dir"
+    # The zip normally holds one top-level folder named after the release
+    shopt -s nullglob
+    entries=("$extract_dir"/*)
+    shopt -u nullglob
+    if [ "${#entries[@]}" -eq 1 ] && [ -d "${entries[0]}" ]; then
+        src="${entries[0]}"
+    else
+        src="$extract_dir"
+    fi
+    rm -rf "$READERS_DIR/windows"
+    mv "$src" "$READERS_DIR/windows"
+    rm -rf "$extract_dir"
+    record_version windows "$winzip"
+fi
 
-echo "Extracting Windows binaries..."
-unzip -q -o "$READERS_DIR/kiwix-windows.zip" -d "$READERS_DIR/"
-# The zip contains a folder called "kiwix-desktop_windows_x64_2.3.1"
-# Let's cleanly rename it to "windows"
-rm -rf "$READERS_DIR/windows"
-mv "$READERS_DIR/kiwix-desktop_windows_x64_2.3.1" "$READERS_DIR/windows"
-rm "$READERS_DIR/kiwix-windows.zip"
+# Drop superseded releases so old versions don't pile up
+for f in "$DOWNLOAD_DIR"/*; do
+    [ -f "$f" ] || continue
+    grep -qF ": $(basename "$f")" "$VERSIONS_FILE" || rm -f "$f"
+done
 
 echo "======================================"
-echo "All readers downloaded successfully!"
+echo "All readers are up to date:"
+sed 's/^/  /' "$VERSIONS_FILE"
 echo "Android: $READERS_DIR/kiwix-android.apk"
 echo "Linux:   $READERS_DIR/kiwix-desktop.AppImage"
 echo "Windows: $READERS_DIR/windows/kiwix-desktop.exe"
