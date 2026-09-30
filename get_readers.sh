@@ -43,6 +43,12 @@ up_to_date() {
     grep -qxF "$1: $(basename "$2")" "$VERSIONS_FILE"
 }
 
+# Hardlink from the download cache when possible so readers don't take twice the space
+install_file() {
+    rm -f "$2"
+    ln "$1" "$2" 2>/dev/null || cp "$1" "$2"
+}
+
 record_version() {
     local tmp
     tmp=$(mktemp)
@@ -61,7 +67,7 @@ echo "Downloading Kiwix binaries to $READERS_DIR/"
 echo "[1/3] Android APK..."
 apk=$(fetch "$ANDROID_URL")
 if ! up_to_date android "$apk"; then
-    cp "$apk" "$READERS_DIR/kiwix-android.apk"
+    install_file "$apk" "$READERS_DIR/kiwix-android.apk"
     record_version android "$apk"
 fi
 
@@ -69,7 +75,7 @@ fi
 echo "[2/3] Linux AppImage..."
 appimage=$(fetch "$LINUX_URL")
 if ! up_to_date linux "$appimage"; then
-    cp "$appimage" "$READERS_DIR/kiwix-desktop.AppImage"
+    install_file "$appimage" "$READERS_DIR/kiwix-desktop.AppImage"
     chmod +x "$READERS_DIR/kiwix-desktop.AppImage"
     record_version linux "$appimage"
 fi
@@ -92,6 +98,7 @@ if ! up_to_date windows "$winzip"; then
     fi
     rm -rf "$READERS_DIR/windows"
     mv "$src" "$READERS_DIR/windows"
+    chmod 755 "$READERS_DIR/windows"  # mktemp -d creates it 0700
     rm -rf "$extract_dir"
     record_version windows "$winzip"
 fi
