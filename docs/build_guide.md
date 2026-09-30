@@ -13,15 +13,20 @@ This guide will walk you through the process of building the Lighthouse USB from
 4. Required dependencies:
    ```bash
    sudo apt update
-   sudo apt install git live-build fdisk exfat-fuse exfat-utils python3 jq
+   sudo apt install git curl unzip python3 live-build fdisk parted exfatprogs
    ```
+5. Only to build the arm64 ISO on an amd64 PC (or the reverse), the qemu user-mode emulators:
+   ```bash
+   sudo apt install qemu-user-static binfmt-support
+   ```
+   `build_iso.sh` checks for these and for a registered binfmt handler before starting a cross-build. The arm64 ISO boots UEFI only (there is no syslinux on arm64).
 
 ## Step 1: Clone the Repository
 
 Clone the project to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/Lighthouse.git
+git clone https://github.com/jlesterak/Lighthouse.git
 cd Lighthouse
 ```
 

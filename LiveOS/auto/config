@@ -4,15 +4,42 @@
 # We use XFCE for a very lightweight desktop environment
 
 TARGET_ARCH=${LB_ARCHITECTURE:-amd64}
+HOST_ARCH=$(dpkg --print-architecture)
 
+case "$TARGET_ARCH" in
+    amd64)
+        QEMU_ARCH=x86_64
+        # BIOS (syslinux) and UEFI boot
+        BOOTLOADERS="syslinux grub-efi"
+        ;;
+    arm64)
+        QEMU_ARCH=aarch64
+        # syslinux doesn't exist on arm64; these machines boot UEFI only
+        BOOTLOADERS="grub-efi"
+        ;;
+    *)
+        echo "Unsupported architecture: $TARGET_ARCH (use amd64 or arm64)" >&2
+        exit 1
+        ;;
+esac
+
+# Building for another architecture runs the target's binaries under qemu-user
+CROSS_OPTS=""
+if [ "$TARGET_ARCH" != "$HOST_ARCH" ]; then
+    CROSS_OPTS="--bootstrap-qemu-arch $TARGET_ARCH --bootstrap-qemu-static /usr/bin/qemu-$QEMU_ARCH-static"
+fi
+
+# shellcheck disable=SC2086
 lb config noauto \
     --mode debian \
     --system live \
     --architectures "$TARGET_ARCH" \
     --linux-flavours "$TARGET_ARCH" \
+    --bootloaders "$BOOTLOADERS" \
     --distribution bookworm \
     --archive-areas "main contrib non-free non-free-firmware" \
     --apt-indices false \
     --apt-recommends false \
     --bootappend-live "boot=live components quiet splash systemd.show_status=false loglevel=3" \
+    $CROSS_OPTS \
     "${@}"

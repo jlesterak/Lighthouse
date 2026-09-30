@@ -5,7 +5,6 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- arm64 cross-build: no qemu-user-static/binfmt setup, and syslinux doesn't exist on arm64.
 - `build_usb.sh` safety check only matches `/dev/sda` and `/dev/nvme0n1` by name.
 - Docs describe `Content/ Readers/ Updater/` on the stick; the script writes
   `content/ readers/` plus loose files.
@@ -21,6 +20,11 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: Cross-building fixed on paper: `auto/config` adds `--bootstrap-qemu-*` when the
+  target differs from the host and uses grub-efi only on arm64; `build_iso.sh` validates the
+  arch, checks qemu-user-static + binfmt, and clears generated config so one arch's settings
+  can't leak into the next build. Build guide deps corrected (`exfat-utils` → `exfatprogs`).
+  Still needs a real build (see PENDING).
 - 2026-09-30: `get_readers.sh` fetches the latest readers through Kiwix's permalinks
   (was pinned to 2.3.1 / Android 3.9.2, which 404s), keeps versioned downloads so resume
   can't mix releases, records `readers/VERSIONS.txt`, and extracts the Windows zip
