@@ -45,6 +45,13 @@ case "$LB_VERSION" in
         ;;
 esac
 
+# debootstrap verifies the Debian archive signature; Ubuntu-based hosts lack the key
+if [ ! -f /usr/share/keyrings/debian-archive-keyring.gpg ]; then
+    echo "Error: the Debian archive keyring is missing, so the bookworm download can't be verified."
+    echo "Please install it via: sudo apt install debian-archive-keyring"
+    exit 1
+fi
+
 # Cross-building runs the target's binaries through qemu-user via binfmt_misc
 HOST_ARCH=$(dpkg --print-architecture)
 if [ "$TARGET_ARCH" != "$HOST_ARCH" ]; then

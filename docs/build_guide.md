@@ -13,7 +13,7 @@ This guide will walk you through the process of building the Lighthouse USB from
 4. Required dependencies:
    ```bash
    sudo apt update
-   sudo apt install git curl unzip python3 live-build fdisk parted exfatprogs
+   sudo apt install git curl unzip python3 live-build fdisk parted exfatprogs debian-archive-keyring
    ```
    On Ubuntu, Pop!_OS or Mint, the `live-build` package is an old fork (3.0~a57) that can't build this image; `build_iso.sh` will refuse it. Install Debian's package over it (it is architecture-independent shell scripts):
    ```bash

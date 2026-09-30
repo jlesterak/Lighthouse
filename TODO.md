@@ -16,6 +16,8 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: `build_iso.sh` checks for `debian-archive-keyring` (debootstrap aborted on Pop
+  without it); added to the build guide deps.
 - 2026-09-30: `build_iso.sh` refuses Ubuntu's live-build fork (3.0~a57 rejects `--bootloaders`)
   and says how to install Debian's 20230502; build guide documents it. shellcheck clean.
 - 2026-09-30: Released v0.2.0 (tagged, pushed with `v0.1.0` on 6e93a17).
