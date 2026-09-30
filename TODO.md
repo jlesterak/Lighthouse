@@ -5,8 +5,6 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- (you) Approve tagging: `v0.1.0` on 6e93a17 (the Gemini-era state) and `v0.2.0` on the
-  release commit. Tags need your OK under the global rules; nothing is pushed.
 - (needs a build machine) Build both ISOs end to end and boot them: amd64 in QEMU/real
   hardware, arm64 in QEMU (`qemu-system-aarch64` + UEFI). Nothing in `LiveOS/` has been
   verified by an actual build since the fixes below. Needs `live-build`, and `qemu-user-static`
@@ -18,6 +16,7 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: Released v0.2.0 (tagged, pushed with `v0.1.0` on 6e93a17).
 - 2026-09-30: `get_readers.sh` marked executable (`setup.sh` option 2 failed with
   "Permission denied" on a fresh clone).
 - 2026-09-30: Versioning: root `VERSION` (0.2.0) is the single source of truth, read by

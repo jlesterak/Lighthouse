@@ -35,5 +35,5 @@ Initial Gemini-built version (never tagged): resumable updater with Kiwix catalo
 search, manifest, reader fetcher, Debian live-build config for amd64/arm64,
 USB flasher, and the `setup.sh` menu.
 
-[0.2.0]: https://github.com/jlesterak/Lighthouse/compare/6e93a17...v0.2.0
-[0.1.0]: https://github.com/jlesterak/Lighthouse/commit/6e93a17
+[0.2.0]: https://github.com/jlesterak/Lighthouse/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/jlesterak/Lighthouse/releases/tag/v0.1.0
