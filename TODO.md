@@ -5,10 +5,6 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- `build_usb.sh` safety check only matches `/dev/sda` and `/dev/nvme0n1` by name.
-- Docs describe `Content/ Readers/ Updater/` on the stick; the script writes
-  `content/ readers/` plus loose files.
-
 - (needs a build machine) Build both ISOs end to end and boot them: amd64 in QEMU/real
   hardware, arm64 in QEMU (`qemu-system-aarch64` + UEFI). Nothing in `LiveOS/` has been
   verified by an actual build since the fixes below. Needs `live-build`, and `qemu-user-static`
@@ -20,6 +16,13 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: `build_usb.sh` hardened: refuses partitions and any disk holding the running
+  system (checked via lsblk mountpoints, so LUKS/LVM roots count), demands `yes-wipe` for
+  non-removable disks, checks capacity, makes you type the device name. The data partition
+  is added with `sfdisk --append` and verified as exactly one new partition (the old
+  `fdisk ... || true` + "last lsblk entry" could have formatted the ISO's EFI partition).
+  Skips `readers/.downloads`. Docs now match the real `content/ readers/` layout.
+  Preflight tested against this machine's disks; sfdisk step tested on a fake hybrid-ISO image.
 - 2026-09-30: Cross-building fixed on paper: `auto/config` adds `--bootstrap-qemu-*` when the
   target differs from the host and uses grub-efi only on arm64; `build_iso.sh` validates the
   arch, checks qemu-user-static + binfmt, and clears generated config so one arch's settings

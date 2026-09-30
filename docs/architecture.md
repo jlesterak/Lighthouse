@@ -26,9 +26,9 @@ To achieve this, the USB drive is partitioned into two distinct volumes:
 - `exFAT` is chosen because it supports files larger than 4GB (crucial for `.zim` files like Wikipedia, which routinely exceed 50GB) and is natively supported by Windows, macOS, recent Linux kernels, and most Android devices.
 - This is the partition the user interacts with.
 - **Contents:**
-  - `Readers/` - Packaged Kiwix binaries (Windows `.exe`, Linux AppImage, Android `.apk`).
-  - `Content/` - The `.zim` libraries and PDFs downloaded by the updater.
-  - `Updater/` - The `updater.py` script and the `manifest.json`.
+  - `readers/` - Packaged Kiwix binaries (`windows/kiwix-desktop.exe`, `kiwix-desktop.AppImage`, `kiwix-android.apk`) and `VERSIONS.txt`.
+  - `content/` - The `.zim` libraries downloaded by the updater (including any `.part` files, which resume from the stick).
+  - `updater.py` and `manifest.json` at the top level. Running `python3 updater.py` from the stick downloads straight into its `content/` folder, because the updater resolves paths relative to itself.
 
 During the boot process of the Live OS, a systemd service (`lighthouse-mount.service`, enabled by a live-build hook) mounts the `exFAT` partition labeled `LIGHTHOUSE` at `/media/LighthouseData` and puts a `Lighthouse_Knowledge_Base` shortcut on the desktop, so that the desktop environment instantly has access to the stored knowledge.
 

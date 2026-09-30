@@ -58,16 +58,16 @@ Finally, we must partition and format the physical USB drive to accept both the 
    lsblk
    ```
    > [!CAUTION]
-   > Identify the correct `/dev/sdX` device (e.g., `/dev/sdb` or `/dev/sdc`). Do not confuse this with your main drive (usually `/dev/sda` or `/dev/nvme0n1`).
+   > Identify the correct `/dev/sdX` device (e.g., `/dev/sdb` or `/dev/sdc`). Do not confuse this with your main drive (usually `/dev/sda` or `/dev/nvme0n1`). The script refuses the disk your system runs from, but it cannot tell your backup drive from your USB stick.
 
 2. **Run the Automated Script:** Return to the `setup.sh` menu and choose Option **4** (Flash Live OS & Content to USB).
 3. The script will prompt you for the `/dev/sdX` target. Enter the block device path you found earlier.
 
 ### What does `build_usb.sh` do?
-- It wipes the partition table of `/dev/sdX`.
-- It uses `dd` to flash the custom `live-image-amd64.hybrid.iso` to the start of the drive.
-- It calculates the remaining free space on the USB stick.
-- It creates a new `exFAT` partition in that free space.
-- It mounts the new partition and copies over your `content/` folder, `readers/` folder, and `updater.py` tool.
+- Safety checks first: it refuses partitions (give it the whole disk) and any disk holding the running system (`/`, `/boot`, swap, even under LUKS/LVM), asks for `yes-wipe` if the disk isn't a removable USB device, and checks the ISO plus content fit.
+- It shows the disk and makes you type its device name to confirm.
+- It uses `dd` to flash the custom `live-image-<arch>.hybrid.iso` to the start of the drive.
+- It appends a new `exFAT` partition labeled `LIGHTHOUSE` in the remaining space, after checking exactly one new partition appeared (so it can never format one of the ISO's own partitions).
+- It mounts the new partition and copies over your `content/` folder, `readers/` folder, `updater.py` and `manifest.json`.
 
 Once the script completes, your Lighthouse USB is fully operational and ready to be stored in your emergency kit.
