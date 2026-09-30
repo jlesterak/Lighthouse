@@ -29,7 +29,7 @@ while true; do
     echo "4) Flash Live OS & Content to USB"
     echo "5) Exit"
     echo ""
-    read -p "Enter choice [1-5]: " choice
+    read -r -p "Enter choice [1-5]: " choice
     
     case $choice in
         1)
@@ -53,7 +53,7 @@ while true; do
             echo "Select target architecture:"
             echo "  1) amd64 (Standard Intel/AMD PCs - Recommended)"
             echo "  2) arm64 (Apple Silicon Macs, modern Chromebooks, Raspberry Pi)"
-            read -p "Enter choice [1-2]: " arch_choice
+            read -r -p "Enter choice [1-2]: " arch_choice
             
             if [ "$arch_choice" == "1" ]; then
                 target_arch="amd64"
@@ -69,7 +69,7 @@ while true; do
         4)
             echo ""
             echo "Launching USB Flasher..."
-            read -p "Enter the target USB device (e.g., /dev/sdX): " usb_device
+            read -r -p "Enter the target USB device (e.g., /dev/sdX): " usb_device
             if [ -z "$usb_device" ]; then
                 echo "Invalid device."
                 continue
@@ -78,7 +78,7 @@ while true; do
             echo "Select the architecture of the ISO you built:"
             echo "  1) amd64"
             echo "  2) arm64"
-            read -p "Enter choice [1-2]: " arch_choice
+            read -r -p "Enter choice [1-2]: " arch_choice
             
             if [ "$arch_choice" == "1" ]; then
                 target_arch="amd64"

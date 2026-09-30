@@ -31,6 +31,20 @@ if ! command -v lb &> /dev/null; then
     exit 1
 fi
 
+# Ubuntu ships a fork of live-build frozen at 3.0~a57, which can't build a modern
+# Debian image (it rejects --bootloaders, among others). Require Debian's.
+LB_VERSION=$(lb --version 2>/dev/null | head -n 1)
+case "$LB_VERSION" in
+    [0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]*) ;;
+    *)
+        echo "Error: live-build $LB_VERSION is too old; Lighthouse needs Debian's live-build 20230502 or newer."
+        echo "Ubuntu and Pop!_OS ship an old fork. Install Debian's package instead:"
+        echo "  curl -LO https://deb.debian.org/debian/pool/main/l/live-build/live-build_20230502_all.deb"
+        echo "  sudo apt install ./live-build_20230502_all.deb"
+        exit 1
+        ;;
+esac
+
 # Cross-building runs the target's binaries through qemu-user via binfmt_misc
 HOST_ARCH=$(dpkg --print-architecture)
 if [ "$TARGET_ARCH" != "$HOST_ARCH" ]; then

@@ -47,7 +47,7 @@ fi
 # Never touch a disk holding the running system, whatever its name
 SYSTEM_MOUNTS=$(lsblk -nro MOUNTPOINT "$DEVICE" | grep -xE '/|/boot|/boot/efi|/home|/usr|/var|\[SWAP\]' || true)
 if [ -n "$SYSTEM_MOUNTS" ]; then
-  echo "Error: $DEVICE holds the running system (mounted at: $(echo $SYSTEM_MOUNTS)). Refusing to wipe it."
+  echo "Error: $DEVICE holds the running system (mounted at: $(paste -sd' ' <<< "$SYSTEM_MOUNTS")). Refusing to wipe it."
   exit 1
 fi
 
