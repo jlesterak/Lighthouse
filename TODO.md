@@ -18,6 +18,8 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: `get_readers.sh` marked executable (`setup.sh` option 2 failed with
+  "Permission denied" on a fresh clone).
 - 2026-09-30: Versioning: root `VERSION` (0.2.0) is the single source of truth, read by
   `updater.py --version`, `setup.sh`, the ISO (volume ID, `/etc/lighthouse-release`) and
   copied to the stick. `CHANGELOG.md` added; a test keeps its top entry equal to `VERSION`.
