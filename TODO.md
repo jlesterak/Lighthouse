@@ -5,7 +5,6 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- Live OS has no ZIM reader: the docs promise Kiwix but the package list lacks it.
 - Updater catalog lookup is broken: `catalog/root.xml` is now a 429-byte navigation stub,
   so no manifest item resolves. Five manifest names are also stale (WikiMed → mdwiki,
   CD3WD, WikiHow gone, StackExchange naming).
@@ -30,6 +29,8 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: Live OS ships Kiwix: `kiwix` (kiwix-desktop 2.3.0 in bookworm) and
+  `kiwix-tools` (`kiwix-serve`) added to the package list.
 - 2026-09-30: Live OS auto-mount fixed: the mount script now looks for `LIGHTHOUSE` (exFAT
   labels max out at 11 chars, so `LIGHTHOUSE_DATA` could never be written), a chroot hook
   enables `lighthouse-mount.service`, and the unit orders after `live-config.service`

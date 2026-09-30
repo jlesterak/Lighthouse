@@ -39,7 +39,7 @@ The bootable operating system is explicitly generated using Debian's `live-build
 - **Base:** Debian Stable (`bookworm` or newer).
 - **Desktop Environment:** XFCE (chosen for extremely low memory usage, allowing it to run on older or lower-spec hardware).
 - **Customizations:**
-  - `kiwix-desktop` is pre-installed.
+  - Kiwix is pre-installed: the `kiwix` package (kiwix-desktop) to read ZIMs, and `kiwix-tools` for `kiwix-serve`, which shares the library over the local network.
   - `aria2` and `python3` are included for running the updater tools from within the live environment.
   - The desktop background is customized to display clear visual instructions on how to use the software.
 
