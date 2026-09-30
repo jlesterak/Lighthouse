@@ -10,7 +10,7 @@ If you have a functioning laptop or desktop computer running its normal operatin
 
 1. **Plug in the USB Drive.**
 2. Ignore any prompts from Windows asking to "format" the drive. This is just Windows not recognizing the bootable Linux partition.
-3. Open your File Explorer and navigate to the USB drive (it should be labeled `LIGHTHOUSE_DATA`).
+3. Open your File Explorer and navigate to the USB drive (it should be labeled `LIGHTHOUSE`).
 4. **Open the Readers Folder:**
    - **Windows:** Double-click on `readers/kiwix-desktop.exe`. It will launch immediately without needing installation.
    - **Mac:** Copy the Kiwix `.dmg` file to your Mac (if downloaded) and install it.
@@ -28,7 +28,7 @@ If the power is out, smartphones and tablets are often the most viable devices d
 3. **Install the Reader:** Navigate to `readers/kiwix-android.apk` and tap it.
    - *Note: Android may warn you about installing apps from "Unknown Sources." You must allow this in your device settings to proceed.*
 4. Open the installed **Kiwix** app.
-5. Tap the menu, select "Device Storage," and navigate to your `LIGHTHOUSE_DATA` USB drive.
+5. Tap the menu, select "Device Storage," and navigate to your `LIGHTHOUSE` USB drive.
 6. Select the `.zim` file you wish to open.
 
 ## 3. Booting directly from the USB (The Live OS)
@@ -40,7 +40,7 @@ If you find a functional PC but its internal hard drive is broken, corrupted, or
 3. Turn on the computer and immediately press the **Boot Menu Key**. (Usually `F12`, `F8`, `F2`, `Del`, or `Esc` depending on the manufacturer).
 4. Select your "USB HDD" or "UEFI USB Flash Drive" from the list.
 5. The Debian Live OS will load to a desktop environment. 
-6. On the desktop, double-click the **"Offline Knowledge Base"** icon. Ensure the `LIGHTHOUSE_DATA` partition is mounted via the file manager first!
+6. On the desktop, double-click the **"Lighthouse_Knowledge_Base"** shortcut. The data partition is mounted automatically at `/media/LighthouseData`.
 
 ---
 

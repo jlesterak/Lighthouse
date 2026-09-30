@@ -5,10 +5,6 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- Data partition label mismatch: `build_usb.sh` writes `LIGHTHOUSE`, the mount script looks
-  for `LIGHTHOUSE_DATA`, so the Live OS never mounts the library.
-- `lighthouse-mount.service` is copied into the image but never enabled, and it can race
-  live-config creating the `user` account and its Desktop.
 - Live OS has no ZIM reader: the docs promise Kiwix but the package list lacks it.
 - Updater catalog lookup is broken: `catalog/root.xml` is now a 429-byte navigation stub,
   so no manifest item resolves. Five manifest names are also stale (WikiMed → mdwiki,
@@ -33,6 +29,11 @@ Findings come from an audit of the code on 2026-09-30.
 ## [IN PROGRESS]
 
 ## [COMPLETED]
+
+- 2026-09-30: Live OS auto-mount fixed: the mount script now looks for `LIGHTHOUSE` (exFAT
+  labels max out at 11 chars, so `LIGHTHOUSE_DATA` could never be written), a chroot hook
+  enables `lighthouse-mount.service`, and the unit orders after `live-config.service`
+  with a retry loop for slow sticks.
 
 - 2026-09-30: Stop tracking live-build output and generated config (`LiveOS/chroot`,
   `LiveOS/.build`, `LiveOS/config/{binary,bootstrap,chroot,common,source}`, stock hook

@@ -30,7 +30,7 @@ To achieve this, the USB drive is partitioned into two distinct volumes:
   - `Content/` - The `.zim` libraries and PDFs downloaded by the updater.
   - `Updater/` - The `updater.py` script and the `manifest.json`.
 
-During the boot process of the Live OS, a custom init script or systemd service mounts a designated `exFAT` partition with the label `LIGHTHOUSE_DATA` so that the desktop environment instantly has access to the stored knowledge.
+During the boot process of the Live OS, a systemd service (`lighthouse-mount.service`, enabled by a live-build hook) mounts the `exFAT` partition labeled `LIGHTHOUSE` at `/media/LighthouseData` and puts a `Lighthouse_Knowledge_Base` shortcut on the desktop, so that the desktop environment instantly has access to the stored knowledge.
 
 ## 3. The Custom Live OS (`live-build`)
 
