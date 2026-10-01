@@ -6,6 +6,8 @@ Findings come from an audit of the code on 2026-09-30.
 ## [PENDING]
 
 - 2026-10-01: data partition verified on Linux: picebox mounts the exFAT LIGHTHOUSE partition (UUID 7EBD-D290), and kiwix-serve serves all 5 ZIMs with working full-text search. It now stays plugged into picebox as the LAN library source (http://wiki.lan). Boot and Windows/macOS/Android checks still open.
+- 2026-10-01: **amd64 booted on real hardware (Jake) and the library opened.** Wi-Fi said "not ready": the image lacked `wpasupplicant` (recommends are off). Fixed in the package list; needs a rebuild (0.3.0) and a re-test of Wi-Fi.
+- (you) Rebuild the amd64 ISO with the Wi-Fi fix, reflash or update the stick, re-test Wi-Fi; arm64 still untested on hardware.
 - (you) Boot the flashed SanDisk stick on real hardware (BIOS and UEFI if you can), and
   open the LIGHTHOUSE partition on Windows, macOS, Android. It holds the amd64 build, the
   readers and 5 test ZIMs (medicine, CD3WD, water, food, ham; all SHA-256 verified).

@@ -36,6 +36,13 @@ squashfs-tools
 
 # Networking & Web
 network-manager-gnome
+# NetworkManager only *recommends* these, and the build skips recommends: without
+# wpasupplicant every Wi-Fi card shows "unavailable"/"not ready" (found on real hardware,
+# Intel AX201, 2026-10-01). wireless-regdb sets legal channels; iw/rfkill to diagnose.
+wpasupplicant
+wireless-regdb
+iw
+rfkill
 firefox-esr
 curl
 wget

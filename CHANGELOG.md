@@ -6,7 +6,7 @@ All notable changes to Lighthouse. The version number lives in `VERSION`
 ## [Unreleased]
 
 First real builds of both ISOs, boot-tested in QEMU (amd64 BIOS + UEFI, arm64 UEFI)
-and flashed to a real stick.
+and flashed to a real stick. amd64 booted on real hardware and the library opened (2026-10-01).
 
 ### Added
 - Updater verifies each download against Kiwix's published SHA-256 and deletes a
@@ -15,6 +15,9 @@ and flashed to a real stick.
 - Live OS: Wi-Fi and GPU firmware, terminal, editor, image viewer, gvfs/udisks2.
 
 ### Fixed
+- Live OS Wi-Fi showed "not ready" and could not connect on real hardware (Intel AX201):
+  `wpasupplicant` is only recommended by NetworkManager and recommends are off. Now
+  installed explicitly, with `wireless-regdb`, `iw` and `rfkill`.
 - Live OS had no live user (`user-setup` was dropped with `--apt-recommends false`),
   so it stopped at a login prompt.
 - arm64 ISO had no partition table, so it couldn't boot from a USB stick; the EFI
