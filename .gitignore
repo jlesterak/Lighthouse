@@ -36,3 +36,4 @@ LiveOS/*.zsync
 
 # Finished ISOs kept between builds
 dist/
+build-*.log
