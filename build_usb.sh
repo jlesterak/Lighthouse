@@ -3,8 +3,8 @@
 # WARNING: This script performs destructive operations on the specified block device.
 # It flashes the Live OS ISO and creates an exFAT partition in the remaining space.
 #
-# Layout: [ ISO (hybrid: iso9660 + EFI image) | room to grow | LIGHTHOUSE exFAT data ]
-# The data partition starts at OS_RESERVE_GIB (default 4 GiB), not right after the ISO, so a
+# Layout: [ ISO (hybrid: iso9660 + EFI image) | room to grow | persistence | LIGHTHOUSE exFAT data ]
+# Everything after the ISO starts at OS_RESERVE_GIB (default 4 GiB), not right after the ISO, so a
 # newer, bigger ISO can later be written in place with --update-os without touching the data.
 #
 # Modes:
@@ -12,10 +12,13 @@
 #   sudo ./build_usb.sh --update-os /dev/sdX [amd64|arm64]   replace only the Live OS; keep
 #        the LIGHTHOUSE partition and everything on it (content, persistence)
 #
-# Persistence: a fresh stick gets an ext4 image file named "persistence" (PERSIST_GIB,
-# default 4) on the LIGHTHOUSE partition. The Live OS boots with the "persistence" option
-# and keeps settings, Wi-Fi passwords and installed packages in it. Delete the file to reset
-# the Live OS; the failsafe boot entry ignores it. PERSIST_GIB=0 skips it.
+# Persistence: a fresh stick gets an ext4 partition labelled "persistence" (PERSIST_GIB, default
+# 4) with persistence.conf "/ union". The Live OS boots with the "persistence" option and keeps
+# settings, Wi-Fi passwords and installed packages there; the failsafe boot entry ignores it.
+# A partition, not a file on LIGHTHOUSE: live-boot opens persistence before exFAT support is
+# loaded, and a root mount of LIGHTHOUSE would leave the user unable to write to it. Its MBR
+# type is 83 (Linux), which Windows doesn't mount, so no "format this disk?" prompt.
+# PERSIST_GIB=0 skips it.
 
 set -euo pipefail
 
@@ -101,16 +104,19 @@ ISO_BYTES=$(stat -c %s "$ISO_FILE")
 # --update-os: write the new ISO over the OS area only, then put the data partition's
 # table entry back exactly as it was (dd replaces the partition table with the ISO's own).
 if [ "$UPDATE_OS" -eq 1 ]; then
-  DATA_LINE=$(sfdisk -d "$DEVICE" | grep '^/dev/' | while read -r line; do
+  # Every partition we must keep (data, and persistence if present), in disk order
+  KEEP_LINES=$(sfdisk -d "$DEVICE" | grep '^/dev/' | while read -r line; do
     part=${line%% *}
-    [ "$(blkid -s LABEL -o value "$part" 2>/dev/null)" = "$DATA_LABEL" ] && echo "$line"
-  done | head -n 1)
-  if [ -z "$DATA_LINE" ]; then
+    case "$(blkid -s LABEL -o value "$part" 2>/dev/null)" in
+      "$DATA_LABEL"|persistence) echo "$line" ;;
+    esac
+  done | sort -t= -k2 -n)
+  KEEP_LABELS=$(lsblk -nro LABEL "$DEVICE" | grep -xE "$DATA_LABEL|persistence" || true)
+  if ! grep -qx "$DATA_LABEL" <<< "$KEEP_LABELS"; then
     echo "Error: no $DATA_LABEL partition on $DEVICE. Build the stick without --update-os first."
     exit 1
   fi
-  DATA_START=$(sed -E 's/.*start= *([0-9]+).*/\1/' <<< "$DATA_LINE")
-  DATA_SIZE=$(sed -E 's/.*size= *([0-9]+).*/\1/' <<< "$DATA_LINE")
+  DATA_START=$(sed -E 's/.*start= *([0-9]+).*/\1/' <<< "$KEEP_LINES" | sort -n | head -n 1)
   DATA_START_BYTES=$(( DATA_START * 512 ))
   if [ "$ISO_BYTES" -gt "$DATA_START_BYTES" ]; then
     echo "Error: the new ISO ($ISO_BYTES bytes) is bigger than the space before the $DATA_LABEL"
@@ -124,7 +130,8 @@ if [ "$UPDATE_OS" -eq 1 ]; then
   lsblk -o NAME,SIZE,FSTYPE,LABEL,MOUNTPOINT "$DEVICE"
   echo ""
   echo "New ISO: $ISO_FILE ($(( ISO_BYTES / 1048576 )) MiB) into $(( DATA_START_BYTES / 1048576 )) MiB of OS space."
-  echo "$DATA_LABEL partition: start sector $DATA_START, $DATA_SIZE sectors (kept)."
+  echo "Kept partitions (data must start at or after sector $DATA_START):"
+  sed 's/^/  /' <<< "$KEEP_LINES"
   read -r -p "Type the device name ($DEVICE) to continue, or anything else to abort: " confirm_device
   if [ "$confirm_device" != "$DEVICE" ]; then
     echo "Aborting."
@@ -136,19 +143,28 @@ if [ "$UPDATE_OS" -eq 1 ]; then
   dd if="$ISO_FILE" of="$DEVICE" bs=4M status=progress conv=fsync
   partprobe "$DEVICE" || true
   udevadm settle
-  echo "${DATA_START},${DATA_SIZE},7" | sfdisk --append --no-reread "$DEVICE"
+  # Re-add each kept partition exactly where it was, in disk order (same start, size, type)
+  while read -r line; do
+    st=$(sed -E 's/.*start= *([0-9]+).*/\1/' <<< "$line")
+    sz=$(sed -E 's/.*size= *([0-9]+).*/\1/' <<< "$line")
+    ty=$(sed -E 's/.*type= *([0-9a-fA-F]+).*/\1/' <<< "$line")
+    echo "${st},${sz},${ty}" | sfdisk --append --no-reread "$DEVICE"
+  done <<< "$KEEP_LINES"
   partprobe "$DEVICE" || true
   udevadm settle
-  NEW_PART=$(sfdisk -d "$DEVICE" | grep '^/dev/' | tail -n 1 | cut -d' ' -f1)
-  for _ in $(seq 1 10); do [ -b "$NEW_PART" ] && break; sleep 1; done
-  if [ "$(blkid -s LABEL -o value "$NEW_PART" 2>/dev/null)" != "$DATA_LABEL" ]; then
-    echo "Error: the $DATA_LABEL partition did not come back as $NEW_PART. Its table entry was:"
-    echo "  $DATA_LINE"
-    echo "Re-add it with: echo '${DATA_START},${DATA_SIZE},7' | sudo sfdisk --append $DEVICE"
+  sleep 1
+  missing=""
+  for want in $KEEP_LABELS; do
+    lsblk -nro LABEL "$DEVICE" | grep -qx "$want" || missing="$missing $want"
+  done
+  if [ -n "$missing" ]; then
+    echo "Error: partition(s)$missing did not come back. The entries to restore were:"
+    sed 's/^/  /' <<< "$KEEP_LINES"
+    echo "Re-add each with: echo 'START,SIZE,TYPE' | sudo sfdisk --append $DEVICE"
     exit 1
   fi
   sync
-  echo "OS updated. $DATA_LABEL is intact on $NEW_PART."
+  echo "OS updated. Kept:"; lsblk -o NAME,SIZE,FSTYPE,LABEL "$DEVICE"
   exit 0
 fi
 
@@ -202,11 +218,19 @@ udevadm settle
 # Append one exFAT (type 7) partition after them and confirm exactly one appeared,
 # so a failure can never lead to formatting one of the ISO's partitions.
 parts_before=$(sfdisk -d "$DEVICE" | grep -c '^/dev/' || true)
-# Start after the OS reserve (in 512-byte sectors), so later ISOs can grow into the gap
-echo "$(( OS_RESERVE_BYTES / 512 )),,7" | sfdisk --append --no-reread "$DEVICE"
+# Start after the OS reserve (in 512-byte sectors), so later ISOs can grow into the gap.
+# Persistence (type 83) first, then the exFAT data partition (type 7) in the rest.
+NEXT=$(( OS_RESERVE_BYTES / 512 ))
+new_parts=1
+if [ "$PERSIST_GIB" -gt 0 ]; then
+  echo "${NEXT},$(( PERSIST_GIB * 1073741824 / 512 )),83" | sfdisk --append --no-reread "$DEVICE"
+  NEXT=$(( NEXT + PERSIST_GIB * 1073741824 / 512 ))
+  new_parts=2
+fi
+echo "${NEXT},,7" | sfdisk --append --no-reread "$DEVICE"
 parts_after=$(sfdisk -d "$DEVICE" | grep -c '^/dev/' || true)
-if [ "$parts_after" -ne "$(( parts_before + 1 ))" ]; then
-  echo "Error: expected one new partition (had $parts_before, now $parts_after). Exiting."
+if [ "$parts_after" -ne "$(( parts_before + new_parts ))" ]; then
+  echo "Error: expected $new_parts new partition(s) (had $parts_before, now $parts_after). Exiting."
   exit 1
 fi
 
@@ -226,6 +250,16 @@ fi
 
 echo "Formatting $DATA_PART as exFAT with label $DATA_LABEL..."
 mkfs.exfat -n "$DATA_LABEL" "$DATA_PART"
+
+if [ "$PERSIST_GIB" -gt 0 ]; then
+  PERSIST_PART=$(sfdisk -d "$DEVICE" | grep '^/dev/' | tail -n 2 | head -n 1 | cut -d' ' -f1)
+  echo "Formatting $PERSIST_PART as ext4 with label persistence..."
+  mkfs.ext4 -q -F -L persistence "$PERSIST_PART"
+  PMNT=$(mktemp -d)
+  mount "$PERSIST_PART" "$PMNT"
+  echo "/ union" > "$PMNT/persistence.conf"
+  umount "$PMNT"; rmdir "$PMNT"
+fi
 
 # 4. Copying the offline content
 echo "Mounting $DATA_PART to copy offline content..."
@@ -248,18 +282,6 @@ for f in updater.py manifest.json VERSION; do
     cp "$f" "$MOUNT_POINT/"
   fi
 done
-
-# 5. Persistence: an ext4 image file the Live OS mounts over / ("persistence" boot option)
-if [ "$PERSIST_GIB" -gt 0 ]; then
-  echo "Creating a ${PERSIST_GIB} GiB persistence file on $DATA_LABEL..."
-  fallocate -l "${PERSIST_GIB}G" "$MOUNT_POINT/persistence" 2>/dev/null \
-    || dd if=/dev/zero of="$MOUNT_POINT/persistence" bs=4M count=$(( PERSIST_GIB * 256 )) status=none
-  mkfs.ext4 -q -F -L persistence "$MOUNT_POINT/persistence"
-  PMNT=$(mktemp -d)
-  mount -o loop "$MOUNT_POINT/persistence" "$PMNT"
-  echo "/ union" > "$PMNT/persistence.conf"
-  umount "$PMNT"; rmdir "$PMNT"
-fi
 
 # Ensure everything is written to disk
 echo "Flushing writes to the USB drive..."

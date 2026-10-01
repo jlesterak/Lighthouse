@@ -1,8 +1,8 @@
 #!/bin/bash
 # End-to-end test of build_usb.sh on a loop device (an image file, never a real disk).
 # Needs root and a built ISO:   sudo tests/test_build_usb.sh [amd64|arm64]
-# Checks: data partition starts at the OS reserve, persistence file is a valid ext4 image
-# with persistence.conf, and --update-os keeps the LIGHTHOUSE partition and its files.
+# Checks: persistence partition at the OS reserve (ext4, label persistence, persistence.conf),
+# data right after it, and --update-os keeps both partitions and their files.
 set -uo pipefail
 cd "$(dirname "$0")/.." || exit 1
 [ "$(id -u)" = 0 ] || { echo "run with sudo"; exit 1; }
@@ -28,13 +28,16 @@ check "build exits 0" "[ $rc = 0 ]"
 partprobe "$LOOP"; udevadm settle
 DATA=$(lsblk -nro NAME,LABEL "$LOOP" | awk '$2=="LIGHTHOUSE"{print "/dev/"$1}')
 check "LIGHTHOUSE partition exists" "[ -n '$DATA' ]"
+PERS=$(lsblk -nro NAME,LABEL "$LOOP" | awk '$2=="persistence"{print "/dev/"$1}')
+PSTART=$(cat "/sys/class/block/$(basename "$PERS")/start" 2>/dev/null || echo 0)
 START=$(cat "/sys/class/block/$(basename "$DATA")/start" 2>/dev/null || echo 0)
-check "data starts at the 4 GiB reserve" "[ $START = $(( 4 * 1073741824 / 512 )) ]"
+check "persistence partition starts at the 4 GiB reserve" "[ $PSTART = $(( 4 * 1073741824 / 512 )) ]"
+check "persistence is ext4, type 83" "[ \"\$(lsblk -nro FSTYPE '$PERS')\" = ext4 ] && sfdisk -d '$LOOP' | grep '^$PERS ' | grep -q 'type=83'"
+check "data starts right after 1 GiB of persistence" "[ $START = $(( 5 * 1073741824 / 512 )) ]"
+mount "$PERS" "$P"
+check "persistence.conf is '/ union'" "[ \"\$(cat '$P/persistence.conf')\" = '/ union' ]"
+echo pmarker > "$P/pmarker.txt"; sync; umount "$P"
 mount "$DATA" "$M"
-check "persistence file is 1 GiB" "[ \$(stat -c %s '$M/persistence') = 1073741824 ]"
-mount -o loop,ro "$M/persistence" "$P"
-check "persistence is ext4 with persistence.conf '/ union'" "[ \"\$(cat '$P/persistence.conf')\" = '/ union' ]"
-umount "$P"
 echo marker > "$M/marker.txt"; sync; umount "$M"
 
 echo "## --update-os keeps the data"
@@ -45,15 +48,20 @@ partprobe "$LOOP"; udevadm settle
 DATA2=$(lsblk -nro NAME,LABEL "$LOOP" | awk '$2=="LIGHTHOUSE"{print "/dev/"$1}')
 START2=$(cat "/sys/class/block/$(basename "$DATA2")/start" 2>/dev/null || echo 0)
 check "LIGHTHOUSE back at the same start" "[ $START2 = $START ]"
+PERS2=$(lsblk -nro NAME,LABEL "$LOOP" | awk '$2=="persistence"{print "/dev/"$1}')
+PSTART2=$(cat "/sys/class/block/$(basename "$PERS2")/start" 2>/dev/null || echo 0)
+check "persistence back at the same start" "[ $PSTART2 = $PSTART ]"
 mount "$DATA2" "$M"
-check "marker file survived" "[ \"\$(cat '$M/marker.txt')\" = marker ]"
-check "persistence file survived" "[ -f '$M/persistence' ]"
+check "data marker survived" "[ \"\$(cat '$M/marker.txt')\" = marker ]"
 umount "$M"
+mount "$PERS2" "$P"
+check "persistence marker survived" "[ \"\$(cat '$P/pmarker.txt')\" = pmarker ]"
+umount "$P"
 check "ISO partition readable again" "lsblk -nro FSTYPE '$LOOP' | grep -q iso9660"
 
 echo "## --update-os refuses an ISO bigger than the OS space (the pre-reserve layout case)"
 BIG=$(mktemp -p "${TMPDIR:-/var/tmp}" lighthouse-big-XXXX.iso)
-truncate -s $(( START * 512 + 1 )) "$BIG"          # sparse: huge on paper, no disk used
+truncate -s $(( PSTART * 512 + 1 )) "$BIG"          # sparse: huge on paper, no disk used
 printf '%s\n' "$LOOP" | ISO_FILE="$BIG" ./build_usb.sh --update-os "$LOOP" "$ARCH" > "$LOGS/toobig.log" 2>&1
 rc=$?; rm -f "$BIG"
 check "oversized ISO refused before writing" "[ $rc = 1 ] && grep -q 'would destroy the start of your data' '$LOGS/toobig.log'"

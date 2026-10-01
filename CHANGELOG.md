@@ -9,10 +9,12 @@ First real builds of both ISOs, boot-tested in QEMU (amd64 BIOS + UEFI, arm64 UE
 and flashed to a real stick. amd64 booted on real hardware and the library opened (2026-10-01).
 
 ### Added
-- **Persistence:** a fresh stick gets a 4 GiB `persistence` file (ext4 image) on the
-  LIGHTHOUSE partition, and the Live OS boots with `persistence`, so Wi-Fi passwords,
-  settings and installed packages survive a reboot. The failsafe boot entry ignores it;
-  deleting the file resets the Live OS. `PERSIST_GIB` sets the size (0 = none).
+- **Persistence:** a fresh stick gets a 4 GiB ext4 partition labelled `persistence`, and the
+  Live OS boots with `persistence`, so Wi-Fi passwords, settings and installed packages survive
+  a reboot. The failsafe boot entry ignores it. MBR type 83, so Windows doesn't mount it or
+  offer to format it. `PERSIST_GIB` sets the size (0 = none). (A file on LIGHTHOUSE was tried
+  first: the boot image has no exFAT driver, and a root mount would leave LIGHTHOUSE read-only
+  for the user.)
 - **`build_usb.sh --update-os`:** replaces only the Live OS and keeps the LIGHTHOUSE
   partition and everything on it. Refuses (before writing) an ISO bigger than the space
   in front of the data.

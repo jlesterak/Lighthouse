@@ -14,15 +14,28 @@ The most complex requirement of Lighthouse is that the USB drive must be:
 1. Bootable as a Live Linux OS on standard PC hardware.
 2. Readable and writable by Windows, macOS, Linux, and Android (via an OTG adapter) when plugged in as a standard storage drive.
 
-To achieve this, the USB drive is partitioned into two distinct volumes:
+To achieve this, the USB drive is laid out like this:
 
-### Partition 1: The Boot Partition (Hybrid ISO9660 / FAT32 / ext4)
+```
+[ boot (hybrid ISO + EFI image) | room for bigger ISOs | persistence (ext4) | LIGHTHOUSE (exFAT) ]
+  0                                                   4 GiB (OS_RESERVE_GIB) + PERSIST_GIB ...  end
+```
+
+The 4 GiB reserve lets `build_usb.sh --update-os` write a newer Live OS in place without
+touching the persistence or data partitions.
+
+### The Boot Partition (Hybrid ISO9660 / FAT32)
 - Contains the GRUB/Syslinux bootloader.
 - Contains the compressed `squashfs` filesystem of the Debian Live OS.
 - This partition is flashed directly from the customized `.iso` image built by `live-build`.
 - *Note: Windows will often prompt the user to "format" this partition because it doesn't understand the filesystem structure. Users must ignore this prompt.*
 
-### Partition 2: The Data Partition (`exFAT`)
+### The Persistence Partition (`ext4`, label `persistence`)
+- The default boot entry passes `persistence`, so live-boot overlays this partition (`persistence.conf`: `/ union`) and keeps Wi-Fi passwords, settings and installed packages across reboots. The failsafe entry boots a fresh session.
+- MBR type 83 (Linux): Windows doesn't give it a drive letter or offer to format it.
+- Not a file on the data partition: live-boot opens persistence before exFAT support is loaded, and mounting LIGHTHOUSE as root for it would leave the user unable to write there.
+
+### The Data Partition (`exFAT`)
 - `exFAT` is chosen because it supports files larger than 4GB (crucial for `.zim` files like Wikipedia, which routinely exceed 50GB) and is natively supported by Windows, macOS, recent Linux kernels, and most Android devices.
 - This is the partition the user interacts with.
 - **Contents:**

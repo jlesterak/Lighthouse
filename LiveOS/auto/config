@@ -40,8 +40,8 @@ LIGHTHOUSE_BUILD_DATE=$(date -u +%Y-%m-%d)
 EOF
 
 # --bootappend-live "persistence": keep changes (Wi-Fi passwords, settings, installed packages)
-# in the file named "persistence" on the LIGHTHOUSE partition, if build_usb.sh created one. The
-# failsafe entry live-build adds keeps its own options (no persistence): a fresh session.
+# on the ext4 partition labelled "persistence" that build_usb.sh creates. The failsafe entry
+# live-build adds keeps its own options (no persistence): a fresh session.
 # shellcheck disable=SC2086
 lb config noauto \
     --mode debian \
