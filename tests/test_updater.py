@@ -24,18 +24,27 @@ class FileHandler(http.server.BaseHTTPRequestHandler):
     honor_range = True
     truncate_first_get_at = None  # close the connection early once, after N bytes
     sha256_body = None  # served at <path>.sha256; None means 404
+    head_status = 200   # 403 imitates mirrors that refuse HEAD but serve GET
+    range_probe_status = None  # if set, a "bytes=0-0" size probe gets this error instead
     gets = 0
 
     def log_message(self, *args):
         pass
 
+    user_agents = []
+
     def do_HEAD(self):
+        type(self).user_agents.append(self.headers.get("User-Agent", ""))
+        if type(self).head_status != 200:
+            self.send_error(type(self).head_status)
+            return
         self.send_response(200)
         self.send_header("Content-Length", str(len(PAYLOAD)))
         self.end_headers()
 
     def do_GET(self):
         cls = type(self)
+        cls.user_agents.append(self.headers.get("User-Agent", ""))
         if self.path.endswith(".sha256"):
             if cls.sha256_body is None:
                 self.send_error(404)
@@ -46,9 +55,19 @@ class FileHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(body)
             return
+        range_header = self.headers.get("Range")
+        if range_header == "bytes=0-0":  # get_remote_size's fallback probe, not a download
+            if cls.range_probe_status:
+                self.send_error(cls.range_probe_status)
+                return
+            self.send_response(206)
+            self.send_header("Content-Range", f"bytes 0-0/{len(PAYLOAD)}")
+            self.send_header("Content-Length", "1")
+            self.end_headers()
+            self.wfile.write(PAYLOAD[:1])
+            return
         cls.gets += 1
         start = 0
-        range_header = self.headers.get("Range")
         if range_header and cls.honor_range:
             start = int(range_header.split("=")[1].rstrip("-"))
             self.send_response(206)
@@ -69,6 +88,9 @@ class DownloadTests(unittest.TestCase):
         FileHandler.honor_range = True
         FileHandler.truncate_first_get_at = None
         FileHandler.sha256_body = None
+        FileHandler.head_status = 200
+        FileHandler.user_agents = []
+        FileHandler.range_probe_status = None
         FileHandler.gets = 0
         self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), FileHandler)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
@@ -92,6 +114,27 @@ class DownloadTests(unittest.TestCase):
     def write_part(self, data):
         with open(self.target + ".part", "wb") as f:
             f.write(data)
+
+    def test_head_forbidden_falls_back_to_range_probe(self):
+        # Some Kiwix mirrors answer HEAD with 403 but serve the file; that must not stall the queue
+        FileHandler.head_status = 403
+        self.assertEqual(updater.get_remote_size(self.url), len(PAYLOAD))
+        self.assertTrue(self.download())
+        self.assertEqual(self.read_target(), PAYLOAD)
+
+    def test_requests_identify_as_lighthouse(self):
+        # Wikimedia's dump servers 403 the default Python-urllib user agent
+        self.assertTrue(self.download())
+        self.assertTrue(FileHandler.user_agents)
+        for ua in FileHandler.user_agents:
+            self.assertTrue(ua.startswith("Lighthouse-updater/"), ua)
+
+    def test_size_unknown_still_downloads(self):
+        FileHandler.head_status = 403
+        FileHandler.range_probe_status = 403
+        self.assertIsNone(updater.get_remote_size(self.url))
+        self.assertTrue(self.download())
+        self.assertEqual(self.read_target(), PAYLOAD)
 
     def test_fresh_download(self):
         self.assertTrue(self.download())

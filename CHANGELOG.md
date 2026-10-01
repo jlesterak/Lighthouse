@@ -32,6 +32,11 @@ and flashed to a real stick. amd64 booted on real hardware and the library opene
 - Live OS: Wi-Fi and GPU firmware, terminal, editor, image viewer, gvfs/udisks2.
 
 ### Fixed
+- Updater stalled forever on files Kiwix serves from dumps.wikimedia.org (e.g. Wikivoyage):
+  Wikimedia refuses Python's default user agent with 403, and a refused HEAD request was
+  retried as a network error. Requests now identify as `Lighthouse-updater/<version>`, and a
+  refused HEAD falls back to a one-byte range request for the size (or none: the download
+  and its SHA-256 check still work).
 - Live OS Wi-Fi showed "not ready" and could not connect on real hardware (Intel AX201):
   `wpasupplicant` is only recommended by NetworkManager and recommends are off. Now
   installed explicitly, with `wireless-regdb`, `iw` and `rfkill`.

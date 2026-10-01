@@ -42,6 +42,18 @@ def get_version():
     except OSError:
         return "unknown"
 
+def _install_user_agent():
+    """Every request identifies itself. Wikimedia's servers (dumps.wikimedia.org, where Kiwix's
+    load balancer sends some files) refuse Python's default "Python-urllib/3.x" user agent with
+    403, which used to stall the whole download queue on those files."""
+    opener = urllib.request.build_opener()
+    opener.addheaders = [("User-Agent", f"Lighthouse-updater/{get_version()} (+https://github.com/jlesterak/Lighthouse)")]
+    urllib.request.install_opener(opener)
+
+
+_install_user_agent()
+
+
 def load_manifest():
     if not os.path.exists(MANIFEST_FILE):
         print(f"Error: {MANIFEST_FILE} not found.", file=sys.stderr)
@@ -60,11 +72,30 @@ def format_bytes(size):
     return f"{size:.2f} {power_labels[n]}B"
 
 def get_remote_size(url):
-    """Returns the Content-Length from a HEAD request, or None if the server omits it."""
-    req = urllib.request.Request(url, method="HEAD")
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        total_size_str = resp.headers.get("Content-Length")
-    return int(total_size_str) if total_size_str else None
+    """
+    The file's size in bytes, or None if the server won't say.
+
+    Asks with HEAD first. Some Kiwix mirrors refuse HEAD (403/405) while serving the file
+    normally, so on an HTTP error it asks for the first byte instead and reads the total
+    from Content-Range. If that is refused too, returns None: the download still works,
+    just without a percentage, and the SHA-256 check still guards the result. Network
+    failures (no connection, timeouts) still raise, so the caller retries them.
+    """
+    try:
+        req = urllib.request.Request(url, method="HEAD")
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            total_size_str = resp.headers.get("Content-Length")
+        return int(total_size_str) if total_size_str else None
+    except urllib.error.HTTPError:
+        pass
+    try:
+        req = urllib.request.Request(url, headers={"Range": "bytes=0-0"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            content_range = resp.headers.get("Content-Range", "")
+        match = re.match(r"bytes \d+-\d+/(\d+)", content_range)
+        return int(match.group(1)) if match else None
+    except urllib.error.HTTPError:
+        return None
 
 def _download_attempt(url, temp_path, total_size):
     """
