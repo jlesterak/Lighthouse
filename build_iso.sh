@@ -78,6 +78,15 @@ cd LiveOS || exit 1
 
 echo "Cleaning previous builds..."
 lb clean
+# lb clean keeps cache/, and the cached bootstrap stage is architecture-specific:
+# without this, an arm64 build after an amd64 one silently restores an amd64
+# base system. Downloaded .debs are kept; apt ignores other architectures'.
+if [ -d cache ] && [ "$(cat cache/.lighthouse-arch 2>/dev/null)" != "$TARGET_ARCH" ]; then
+    echo "Cache was built for another architecture; dropping its bootstrap stage..."
+    rm -rf cache/bootstrap cache/contents.chroot
+fi
+mkdir -p cache
+echo "$TARGET_ARCH" > cache/.lighthouse-arch
 # lb config reloads these generated files, so settings from a build for another
 # architecture (bootloaders, qemu) would leak into this one. auto/config recreates them.
 rm -f config/binary config/bootstrap config/chroot config/common config/source

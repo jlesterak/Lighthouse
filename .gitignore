@@ -33,3 +33,6 @@ LiveOS/config/includes.chroot/etc/lighthouse-release
 LiveOS/.lock
 LiveOS/binary.modified_timestamps
 LiveOS/*.zsync
+
+# Finished ISOs kept between builds
+dist/

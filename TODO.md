@@ -16,6 +16,9 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: `build_iso.sh` drops live-build's cached bootstrap stage when the target arch
+  changes (an arm64 build after amd64 silently restored the amd64 base system and failed
+  with `Unable to locate package linux-image-arm64`). Finished ISOs can be kept in `dist/`.
 - 2026-09-30: First real amd64 build (live-build 20230502) and boot test. `build_usb.sh` run
   on a 6GB loop-device stick, booted in QEMU as USB under BIOS (syslinux) and UEFI (GRUB,
   OVMF): autologin, `lighthouse-mount` active, data partition at `/media/LighthouseData`,
