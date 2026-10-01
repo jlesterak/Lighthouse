@@ -85,7 +85,8 @@ TRANSPORT=$(lsblk -dno TRAN "$DEVICE" | tr -d ' ')
 if [ "$REMOVABLE" != "1" ] && [ "$TRANSPORT" != "usb" ]; then
   echo "WARNING: $DEVICE is not a removable USB device (transport: ${TRANSPORT:-unknown})."
   echo "It looks like an internal drive."
-  read -r -p "Are you ABSOLUTELY SURE you want to completely wipe $DEVICE? (type 'yes-wipe'): " confirmation
+  if [ "$UPDATE_OS" -eq 1 ]; then what="overwrite the Live OS area of"; else what="completely wipe"; fi
+  read -r -p "Are you ABSOLUTELY SURE you want to $what $DEVICE? (type 'yes-wipe'): " confirmation
   if [ "$confirmation" != "yes-wipe" ]; then
     echo "Aborting."
     exit 1

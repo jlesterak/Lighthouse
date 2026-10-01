@@ -14,7 +14,7 @@ IMG=$(mktemp -p "${TMPDIR:-/var/tmp}" lighthouse-test-XXXX.img)
 truncate -s 12G "$IMG"
 LOOP=$(losetup -fP --show "$IMG")
 M=$(mktemp -d); P=$(mktemp -d)
-cleanup(){ umount "$P" "$M" 2>/dev/null; rmdir "$P" "$M" 2>/dev/null; losetup -d "$LOOP" 2>/dev/null; rm -f "$IMG"; }
+cleanup(){ umount "$P" "$M" 2>/dev/null; rmdir "$P" "$M" 2>/dev/null; losetup -d "$LOOP" 2>/dev/null; rm -f "$IMG"; chmod -R a+rX "$LOGS"; }
 trap cleanup EXIT
 
 pass=0; fail=0
@@ -41,9 +41,10 @@ mount "$DATA" "$M"
 echo marker > "$M/marker.txt"; sync; umount "$M"
 
 echo "## --update-os keeps the data"
-printf '%s\n' "$LOOP" | ./build_usb.sh --update-os "$LOOP" "$ARCH" > "$LOGS/update.log" 2>&1
+printf 'yes-wipe\n%s\n' "$LOOP" | ./build_usb.sh --update-os "$LOOP" "$ARCH" > "$LOGS/update.log" 2>&1
 rc=$?
 check "update exits 0" "[ $rc = 0 ]"
+check "update actually wrote the ISO" "grep -q 'OS updated' '$LOGS/update.log'"
 partprobe "$LOOP"; udevadm settle
 DATA2=$(lsblk -nro NAME,LABEL "$LOOP" | awk '$2=="LIGHTHOUSE"{print "/dev/"$1}')
 START2=$(cat "/sys/class/block/$(basename "$DATA2")/start" 2>/dev/null || echo 0)
@@ -62,7 +63,7 @@ check "ISO partition readable again" "lsblk -nro FSTYPE '$LOOP' | grep -q iso966
 echo "## --update-os refuses an ISO bigger than the OS space (the pre-reserve layout case)"
 BIG=$(mktemp -p "${TMPDIR:-/var/tmp}" lighthouse-big-XXXX.iso)
 truncate -s $(( PSTART * 512 + 1 )) "$BIG"          # sparse: huge on paper, no disk used
-printf '%s\n' "$LOOP" | ISO_FILE="$BIG" ./build_usb.sh --update-os "$LOOP" "$ARCH" > "$LOGS/toobig.log" 2>&1
+printf 'yes-wipe\n%s\n' "$LOOP" | ISO_FILE="$BIG" ./build_usb.sh --update-os "$LOOP" "$ARCH" > "$LOGS/toobig.log" 2>&1
 rc=$?; rm -f "$BIG"
 check "oversized ISO refused before writing" "[ $rc = 1 ] && grep -q 'would destroy the start of your data' '$LOGS/toobig.log'"
 mount "$DATA2" "$M"; check "marker still there after refusal" "[ -f '$M/marker.txt' ]"; umount "$M"
