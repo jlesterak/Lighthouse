@@ -5,10 +5,6 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- Build the arm64 ISO (cross-build via qemu-user-static) and boot it in
-  `qemu-system-aarch64` with UEFI firmware.
-- The syslinux/GRUB menus wait forever for Enter; add a short auto-boot timeout so an
-  unattended stick boots on its own.
 - (needs a spare USB stick) Run `build_usb.sh` on a real stick and confirm the exFAT
   partition mounts on Windows, macOS, Linux, Android, and in the booted Live OS.
 
@@ -16,6 +12,13 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: arm64 built (cross, ~2h under qemu-user) and boot-tested: `build_usb.sh` onto a
+  loop stick, UEFI boot as USB on an emulated Cortex-A72 (`virt` + AAVMF): GRUB auto-boots,
+  autologin, data partition mounted, version stamp `arm64`. Fixed on the way: live-build
+  gave the arm64 ISO no partition table (its GPT hybrid option needs syslinux), so
+  `build_iso.sh` now appends the EFI image as an ESP with xorriso, like Debian's arm64 ISOs.
+- 2026-09-30: 5-second auto-boot timeout in syslinux and GRUB (they waited forever), via
+  `LiveOS/config/bootloaders/` overrides.
 - 2026-09-30: Updater verifies every finished download against Kiwix's published SHA-256 and
   deletes a corrupt one. Tested locally and against the real Water ZIM. (Prompted by
   hand-checking the five test-set ZIMs on the flashed stick, which all matched.)

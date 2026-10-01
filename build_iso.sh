@@ -45,6 +45,12 @@ case "$LB_VERSION" in
         ;;
 esac
 
+if ! command -v xorriso &> /dev/null; then
+    echo "Error: 'xorriso' is not installed."
+    echo "Please install it via: sudo apt install xorriso"
+    exit 1
+fi
+
 # debootstrap verifies the Debian archive signature; Ubuntu-based hosts lack the key
 if [ ! -f /usr/share/keyrings/debian-archive-keyring.gpg ]; then
     echo "Error: the Debian archive keyring is missing, so the bookworm download can't be verified."
@@ -100,6 +106,26 @@ echo "-------------------------------------------------"
 lb build
 
 ISO_FILE="live-image-${TARGET_ARCH}.hybrid.iso"
+
+# Without syslinux (arm64 is UEFI only), live-build's -isohybrid-gpt-basdat has
+# no effect and the ISO gets no partition table at all: written to a stick it
+# won't boot on most UEFI firmware, and build_usb.sh can't append the data
+# partition. Add an MBR with the EFI image as a real ESP, the way Debian's own
+# arm64 ISOs are laid out.
+if [ -f "$ISO_FILE" ] && ! sfdisk -d "$ISO_FILE" > /dev/null 2>&1; then
+    echo "Adding a partition table with an EFI system partition to the ISO..."
+    WORK_DIR=$(mktemp -d)
+    xorriso -osirrox on -indev "$ISO_FILE" -extract /boot/grub/efi.img "$WORK_DIR/efi.img"
+    xorriso -indev "$ISO_FILE" -outdev "$WORK_DIR/hybrid.iso" \
+        -boot_image any replay \
+        -append_partition 2 0xef "$WORK_DIR/efi.img" \
+        -boot_image any partition_cyl_align=all \
+        -changes_pending yes -commit
+    mv "$WORK_DIR/hybrid.iso" "$ISO_FILE"
+    rm -rf "$WORK_DIR"
+    sfdisk -d "$ISO_FILE" > /dev/null
+fi
+
 if [ -f "$ISO_FILE" ]; then
     echo "-------------------------------------------------"
     echo "================================================="
