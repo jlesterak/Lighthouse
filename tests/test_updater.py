@@ -226,7 +226,8 @@ class VersionTests(unittest.TestCase):
         changelog = os.path.join(updater.BASE_DIR, "CHANGELOG.md")
         with open(changelog, encoding="utf-8") as f:
             for line in f:
-                if line.startswith("## ["):
+                # An [Unreleased] section may sit above the current release
+                if line.startswith("## [") and not line.startswith("## [Unreleased]"):
                     self.assertEqual(line[4:line.index("]")], updater.get_version(),
                                      "bump CHANGELOG.md together with VERSION")
                     return

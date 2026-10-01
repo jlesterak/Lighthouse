@@ -5,13 +5,20 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- (needs a spare USB stick) Run `build_usb.sh` on a real stick and confirm the exFAT
-  partition mounts on Windows, macOS, Linux, Android, and in the booted Live OS.
+- (you) Boot the flashed SanDisk stick on real hardware (BIOS and UEFI if you can), and
+  open the LIGHTHOUSE partition on Windows, macOS, Android. It holds the amd64 build, the
+  readers and 5 test ZIMs (medicine, CD3WD, water, food, ham; all SHA-256 verified).
+- After the real-hardware test passes: release 0.3.0 (rename `[Unreleased]` in
+  CHANGELOG, bump `VERSION`, rebuild both ISOs so they carry 0.3.0), tag, push.
+- (you, sudo) Remove the temporary sudoers rule: `sudo rm /etc/sudoers.d/lighthouse-temp`.
 
 ## [IN PROGRESS]
 
 ## [COMPLETED]
 
+- 2026-09-30: Flashed `/dev/sda` (920GB SanDisk, was Ventoy) with the final amd64 build:
+  ISO bytes verified on the stick, data partition holds readers, updater, 5 ZIMs.
+  Both ISOs kept in `dist/` (gitignored).
 - 2026-09-30: arm64 built (cross, ~2h under qemu-user) and boot-tested: `build_usb.sh` onto a
   loop stick, UEFI boot as USB on an emulated Cortex-A72 (`virt` + AAVMF): GRUB auto-boots,
   autologin, data partition mounted, version stamp `arm64`. Fixed on the way: live-build

@@ -60,7 +60,9 @@ number ([Semantic Versioning](https://semver.org/)). Everything else reads it:
 Never hard-code a version anywhere else.
 
 To cut a release:
-1. Update `VERSION` and add a matching `## [x.y.z] - YYYY-MM-DD` entry at the top of
+Changes land under `## [Unreleased]` at the top of `CHANGELOG.md` as they are made.
+
+1. Update `VERSION` and rename `[Unreleased]` to a matching `## [x.y.z] - YYYY-MM-DD` entry in
    `CHANGELOG.md` (the test suite fails if they disagree).
 2. Run `python3 -m unittest discover -s tests`.
 3. Commit as `chore: release vx.y.z`, then tag it: `git tag -a vx.y.z -m "Lighthouse x.y.z"`.
