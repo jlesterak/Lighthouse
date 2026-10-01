@@ -5,6 +5,7 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
+- 2026-10-01: data partition verified on Linux: picebox mounts the exFAT LIGHTHOUSE partition (UUID 7EBD-D290), and kiwix-serve serves all 5 ZIMs with working full-text search. It now stays plugged into picebox as the LAN library source (http://wiki.lan). Boot and Windows/macOS/Android checks still open.
 - (you) Boot the flashed SanDisk stick on real hardware (BIOS and UEFI if you can), and
   open the LIGHTHOUSE partition on Windows, macOS, Android. It holds the amd64 build, the
   readers and 5 test ZIMs (medicine, CD3WD, water, food, ham; all SHA-256 verified).
