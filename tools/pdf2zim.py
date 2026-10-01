@@ -138,22 +138,26 @@ def main():
         tree = {}
         for idx, start, end, anc, title in items:
             crumb = " › ".join(anc[1:])            # skip the book-level root
-            name = title.split(" > ")[-1].strip()
-            kind = " > ".join(title.split(" > ")[:-1]).title()
-            full = f"{anc[-1] if anc else ''}: {name}" if anc else name
+            # Bookmarks like "REMOVAL AND INSTALLATION > BRAKE PADS > REMOVAL": the first part is the
+            # kind of entry, the rest says what it is. Title it "Front Disc Brake: Brake Pads › Removal".
+            parts = [p.strip() for p in title.split(" > ") if p.strip()]
+            kind = parts[0].title() if len(parts) > 1 else ""
+            name = " › ".join(x.title() for x in (parts[1:] if len(parts) > 1 else parts))
+            section = anc[-1].title() if anc else ""
+            full = f"{section}: {name}" if section else name
             pages = range(start, end + 1)
             body = (f"<p class=crumb><a href='../index'>Contents</a> › {html.escape(crumb)}</p>"
-                    f"<h1>{html.escape(name.title())}</h1>"
+                    f"<h1>{html.escape(name)}</h1>"
                     + (f"<p class=crumb>{html.escape(kind)} · pages {start}-{end}</p>" if kind else f"<p class=crumb>pages {start}-{end}</p>")
                     + "".join(f"<figure><img loading=lazy src='../img/{p}.webp' alt='Page {p}'>"
                               f"<figcaption>Page {p}</figcaption></figure>"
                               f"<details><summary>Page {p} text</summary><pre>{html.escape(text.get(p, ''))}</pre></details>"
                               for p in pages))
-            z.add_item(Page(f"p/{idx}", f"{full} ({kind.lower()})" if kind else full, doc(name, body, 1), front=True))
+            z.add_item(Page(f"p/{idx}", full, doc(full, body, 1), front=True))
             node = tree
             for t in anc[1:]:
                 node = node.setdefault(t, {})
-            node.setdefault("__leaves__", []).append((idx, name.title(), kind))
+            node.setdefault("__leaves__", []).append((idx, name, kind))
 
         def render_tree(node, depth):
             out = ["<ul>"]
