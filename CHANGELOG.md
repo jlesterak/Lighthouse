@@ -21,6 +21,10 @@ and flashed to a real stick. amd64 booted on real hardware and the library opene
 - The data partition now starts at a 4 GiB OS reserve (`OS_RESERVE_GIB`) instead of right
   after the ISO, so newer ISOs fit in place. Sticks built before this have no room: back up
   LIGHTHOUSE and rebuild once.
+- `tools/pdf2zim.py`: turns a big bookmarked PDF (service or device manual) into a Kiwix ZIM:
+  one article per bookmark with the page images (diagrams intact) and searchable page text,
+  readable in kiwix-serve, Kiwix desktop and the Kiwix Android app with no network.
+  Needs `pip install pymupdf libzim pillow`. A 13,343-page workshop manual builds in minutes.
 - `tests/test_build_usb.sh`: end-to-end test of both modes on a loop device (root).
 - Updater verifies each download against Kiwix's published SHA-256 and deletes a
   corrupt one.
