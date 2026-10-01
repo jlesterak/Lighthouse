@@ -63,6 +63,8 @@ The `updater.py` tool utilizes HTTP `Range` headers. When starting a download:
 5. If the server answers 200 instead of 206 (it ignored the `Range` header), the partial file is discarded and the download restarts, so the whole body is never appended to a partial file.
 6. If the connection drops or closes before `Content-Length` bytes arrive, the updater retries automatically with exponential backoff (up to 10 tries, capped at 60s), resuming each time. The `.part` file is only renamed to the final `.zim` once it is complete.
 
+7. Once complete, the file is checked against the SHA-256 that Kiwix publishes next to every ZIM (`<file>.sha256`). A mismatch deletes the corrupt download rather than leaving a broken library on the stick; if no checksum is published, the updater says so and keeps the file.
+
 If it does give up, the user can simply re-run `python3 updater.py` later, and the download resumes from the exact byte it stopped on.
 
 ### Catalog lookup

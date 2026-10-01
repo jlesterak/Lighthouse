@@ -16,6 +16,9 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: Updater verifies every finished download against Kiwix's published SHA-256 and
+  deletes a corrupt one. Tested locally and against the real Water ZIM. (Prompted by
+  hand-checking the five test-set ZIMs on the flashed stick, which all matched.)
 - 2026-09-30: `build_iso.sh` drops live-build's cached bootstrap stage when the target arch
   changes (an arm64 build after amd64 silently restored the amd64 base system and failed
   with `Unable to locate package linux-image-arm64`). Finished ISOs can be kept in `dist/`.

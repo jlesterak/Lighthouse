@@ -14,6 +14,8 @@ import urllib.parse
 import urllib.error
 import xml.etree.ElementTree as ET
 import time
+import hashlib
+import re
 
 # Resolve paths next to this script so it works from any working directory,
 # including when run straight off the USB stick.
@@ -158,9 +160,46 @@ def download_file(url, target_path, max_retries=MAX_RETRIES, max_backoff=MAX_BAC
                 return False
 
     print("\nDownload finished successfully.")
+
+    expected = fetch_expected_sha256(url)
+    if expected is None:
+        print("No checksum is published for this file; skipping verification.")
+    else:
+        print("Verifying SHA-256 checksum (this takes a while for large files)...")
+        try:
+            actual = sha256_of(temp_path)
+        except KeyboardInterrupt:
+            print("\nVerification interrupted. Run the script again to finish it.")
+            return False
+        if actual != expected:
+            print("Checksum mismatch: the download is corrupt. Deleting it; run the script again to re-download.")
+            os.remove(temp_path)
+            return False
+        print("Checksum verified.")
+
     # os.replace overwrites an existing file on every platform, including Windows
     os.replace(temp_path, target_path)
     return True
+
+def fetch_expected_sha256(url):
+    """
+    Kiwix publishes `<file>.sha256` next to every ZIM. Returns the hex digest,
+    or None when there isn't one (or it can't be fetched).
+    """
+    try:
+        with urllib.request.urlopen(url + ".sha256", timeout=30) as resp:
+            text = resp.read(4096).decode("ascii", errors="replace")
+    except OSError:
+        return None
+    match = re.match(r"\s*([0-9a-fA-F]{64})\b", text)
+    return match.group(1).lower() if match else None
+
+def sha256_of(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 def parse_opds_entries(xml_data):
     """

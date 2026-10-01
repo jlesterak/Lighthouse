@@ -3,6 +3,7 @@ Tests for updater.py. Standard library only, no network access:
 run with `python3 -m unittest discover -s tests` from the repo root.
 """
 
+import hashlib
 import http.server
 import os
 import sys
@@ -22,6 +23,7 @@ class FileHandler(http.server.BaseHTTPRequestHandler):
     """Serves PAYLOAD. Behaviour is switched through class attributes."""
     honor_range = True
     truncate_first_get_at = None  # close the connection early once, after N bytes
+    sha256_body = None  # served at <path>.sha256; None means 404
     gets = 0
 
     def log_message(self, *args):
@@ -34,6 +36,16 @@ class FileHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
         cls = type(self)
+        if self.path.endswith(".sha256"):
+            if cls.sha256_body is None:
+                self.send_error(404)
+                return
+            body = cls.sha256_body.encode()
+            self.send_response(200)
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+            return
         cls.gets += 1
         start = 0
         range_header = self.headers.get("Range")
@@ -56,6 +68,7 @@ class DownloadTests(unittest.TestCase):
     def setUp(self):
         FileHandler.honor_range = True
         FileHandler.truncate_first_get_at = None
+        FileHandler.sha256_body = None
         FileHandler.gets = 0
         self.server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), FileHandler)
         threading.Thread(target=self.server.serve_forever, daemon=True).start()
@@ -114,6 +127,17 @@ class DownloadTests(unittest.TestCase):
         self.assertTrue(self.download())
         self.assertEqual(self.read_target(), PAYLOAD)
         self.assertEqual(FileHandler.gets, 0)
+
+    def test_matching_checksum_is_accepted(self):
+        FileHandler.sha256_body = hashlib.sha256(PAYLOAD).hexdigest() + "  file.zim\n"
+        self.assertTrue(self.download())
+        self.assertEqual(self.read_target(), PAYLOAD)
+
+    def test_checksum_mismatch_deletes_download(self):
+        FileHandler.sha256_body = "0" * 64 + "  file.zim\n"
+        self.assertFalse(self.download())
+        self.assertFalse(os.path.exists(self.target))
+        self.assertFalse(os.path.exists(self.target + ".part"))
 
     def test_replaces_existing_target(self):
         with open(self.target, "wb") as f:
