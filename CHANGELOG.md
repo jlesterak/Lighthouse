@@ -9,6 +9,17 @@ First real builds of both ISOs, boot-tested in QEMU (amd64 BIOS + UEFI, arm64 UE
 and flashed to a real stick. amd64 booted on real hardware and the library opened (2026-10-01).
 
 ### Added
+- **Persistence:** a fresh stick gets a 4 GiB `persistence` file (ext4 image) on the
+  LIGHTHOUSE partition, and the Live OS boots with `persistence`, so Wi-Fi passwords,
+  settings and installed packages survive a reboot. The failsafe boot entry ignores it;
+  deleting the file resets the Live OS. `PERSIST_GIB` sets the size (0 = none).
+- **`build_usb.sh --update-os`:** replaces only the Live OS and keeps the LIGHTHOUSE
+  partition and everything on it. Refuses (before writing) an ISO bigger than the space
+  in front of the data.
+- The data partition now starts at a 4 GiB OS reserve (`OS_RESERVE_GIB`) instead of right
+  after the ISO, so newer ISOs fit in place. Sticks built before this have no room: back up
+  LIGHTHOUSE and rebuild once.
+- `tests/test_build_usb.sh`: end-to-end test of both modes on a loop device (root).
 - Updater verifies each download against Kiwix's published SHA-256 and deletes a
   corrupt one.
 - 5-second auto-boot timeout in syslinux and GRUB, so an unattended stick boots.

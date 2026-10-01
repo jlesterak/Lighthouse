@@ -39,6 +39,9 @@ LIGHTHOUSE_ARCH=$TARGET_ARCH
 LIGHTHOUSE_BUILD_DATE=$(date -u +%Y-%m-%d)
 EOF
 
+# --bootappend-live "persistence": keep changes (Wi-Fi passwords, settings, installed packages)
+# in the file named "persistence" on the LIGHTHOUSE partition, if build_usb.sh created one. The
+# failsafe entry live-build adds keeps its own options (no persistence): a fresh session.
 # shellcheck disable=SC2086
 lb config noauto \
     --mode debian \
@@ -52,6 +55,6 @@ lb config noauto \
     --archive-areas "main contrib non-free non-free-firmware" \
     --apt-indices false \
     --apt-recommends false \
-    --bootappend-live "boot=live components quiet splash systemd.show_status=false loglevel=3" \
+    --bootappend-live "boot=live components persistence quiet splash systemd.show_status=false loglevel=3" \
     $CROSS_OPTS \
     "${@}"
