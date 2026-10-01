@@ -5,10 +5,10 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- (needs a build machine) Build both ISOs end to end and boot them: amd64 in QEMU/real
-  hardware, arm64 in QEMU (`qemu-system-aarch64` + UEFI). Nothing in `LiveOS/` has been
-  verified by an actual build since the fixes below. Needs `live-build`, and `qemu-user-static`
-  for arm64 cross-builds (see `docs/build_guide.md`).
+- Build the arm64 ISO (cross-build via qemu-user-static) and boot it in
+  `qemu-system-aarch64` with UEFI firmware.
+- The syslinux/GRUB menus wait forever for Enter; add a short auto-boot timeout so an
+  unattended stick boots on its own.
 - (needs a spare USB stick) Run `build_usb.sh` on a real stick and confirm the exFAT
   partition mounts on Windows, macOS, Linux, Android, and in the booted Live OS.
 
@@ -16,6 +16,12 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-09-30: First real amd64 build (live-build 20230502) and boot test. `build_usb.sh` run
+  on a 6GB loop-device stick, booted in QEMU as USB under BIOS (syslinux) and UEFI (GRUB,
+  OVMF): autologin, `lighthouse-mount` active, data partition at `/media/LighthouseData`,
+  desktop shortcut, `/etc/lighthouse-release`, Kiwix opens a ZIM from the stick. Found and
+  fixed: no live user (`--apt-recommends false` dropped `user-setup`), no terminal/editor/
+  gvfs/udisks2/xdg-user-dirs, no Wi-Fi or GPU firmware. `build_usb.sh` accepts loop devices.
 - 2026-09-30: `build_iso.sh` checks for `debian-archive-keyring` (debootstrap aborted on Pop
   without it); added to the build guide deps.
 - 2026-09-30: `build_iso.sh` refuses Ubuntu's live-build fork (3.0~a57 rejects `--bootloaders`)

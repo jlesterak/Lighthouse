@@ -30,3 +30,6 @@ LiveOS/config/hooks/*/*
 
 # Generated at build time from VERSION
 LiveOS/config/includes.chroot/etc/lighthouse-release
+LiveOS/.lock
+LiveOS/binary.modified_timestamps
+LiveOS/*.zsync

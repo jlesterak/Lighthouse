@@ -2,6 +2,32 @@
 task-xfce-desktop
 lightdm
 
+# The build sets --apt-recommends false, so anything only *recommended* by the
+# packages above has to be listed explicitly.
+# live-config: user-setup creates the live user (no user = no autologin)
+user-setup
+locales
+console-setup
+
+# Desktop basics XFCE only recommends
+xfce4-terminal
+mousepad
+ristretto
+xfce4-notifyd
+xdg-user-dirs
+dbus-x11
+gvfs
+udisks2
+thunar-volman
+
+# Wi-Fi and GPU firmware, so the stick works on whatever PC is at hand
+firmware-misc-nonfree
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+firmware-brcm80211
+firmware-amd-graphics
+
 # Filesystems
 exfat-fuse
 exfatprogs

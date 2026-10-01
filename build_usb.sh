@@ -39,7 +39,9 @@ if [ ! -b "$DEVICE" ]; then
   echo "Error: Device $DEVICE not found or is not a physical block device."
   exit 1
 fi
-if [ "$(lsblk -dno TYPE "$DEVICE")" != "disk" ]; then
+# (loop devices count, so the whole flow can be tested on an image file)
+DEVICE_TYPE=$(lsblk -dno TYPE "$DEVICE")
+if [ "$DEVICE_TYPE" != "disk" ] && [ "$DEVICE_TYPE" != "loop" ]; then
   echo "Error: $DEVICE is not a whole disk. Give the disk (e.g. /dev/sdb), not a partition (/dev/sdb1)."
   exit 1
 fi
