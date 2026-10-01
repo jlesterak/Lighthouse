@@ -20,6 +20,11 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-10-01: `tools/site2zim.py`: static HTML sites (folder or .zip, read in place) to ZIMs; LEMON
+  Manuals zips need no options (title/name from the front page, other-trim pages kept out of title
+  suggestions). Tests in `tests/test_site2zim.py` (skipped without libzim). Built the 2016 F-150
+  3.5L EcoBoost (VIN G) manual with it: 627 MB, search and color diagrams verified in kiwix-serve.
+  README now lists recommended ZIMs and how to convert your own manuals (pdf2zim, site2zim, LEMON).
 - 2026-09-30: Flashed `/dev/sda` (920GB SanDisk, was Ventoy) with the final amd64 build:
   ISO bytes verified on the stick, data partition holds readers, updater, 5 ZIMs.
   Both ISOs kept in `dist/` (gitignored).

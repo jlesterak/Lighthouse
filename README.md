@@ -26,6 +26,7 @@ Lighthouse/
 ├── build_iso.sh          # The automated script to build the Live OS ISO
 ├── build_usb.sh          # The automated script to format and build the USB drive
 ├── get_readers.sh        # Utility script to download the Kiwix binaries
+├── tools/                # Turn your own manuals into ZIMs (pdf2zim.py, site2zim.py)
 ├── tests/                # Updater test suite (python3 -m unittest discover -s tests)
 ├── CHANGELOG.md          # Release history
 ├── LICENSE               # GPLv3 Open Source License
@@ -47,6 +48,47 @@ The script will automatically clone the repository (if necessary) and present a 
 4. Format and flash the Live OS & Knowledge Base to a USB Drive
 
 If building the full bootable Live OS manually, consult the [Build Guide](docs/build_guide.md).
+
+## Recommended ZIMs
+
+The updater offers everything in `manifest.json`: Wikipedia, WikiMed, the medical library, CD3WD, iFixit, the
+zimgit post-disaster, water and food sets, the ServerFault, AskUbuntu, Electronics and Ham Radio Stack Exchanges,
+and the OpenStreetMap wiki. These are also worth adding from the [Kiwix library](https://library.kiwix.org/):
+
+| ZIM (catalog name) | Why |
+|---|---|
+| `mechanics.stackexchange.com_en_all` | Motor vehicle maintenance and repair Q&A |
+| `diy.stackexchange.com_en_all` | Home improvement: wiring, plumbing, carpentry |
+| `gardening.stackexchange.com_en_all` | Growing food |
+| `outdoors.stackexchange.com_en_all` | Camping, navigation, wilderness skills |
+| `cooking.stackexchange.com_en_all` | Food preparation and preservation |
+| `appropedia_en_all` | Appropriate technology, sustainability, off-grid builds |
+| `wikihow_en_all` | Step-by-step how-tos for nearly everything |
+| `gutenberg_en_all` | Project Gutenberg's public-domain books (very large) |
+| `wiktionary_en_all` | Dictionary |
+
+## Your Own Manuals
+
+The ZIMs above don't cover the specific machines you own. `tools/` converts the manuals you have into ZIMs, so
+they get Kiwix search on any reader, including a phone with no signal:
+
+- **`tools/pdf2zim.py`**: a bookmarked PDF (a service manual, a device manual). Each bookmark becomes an article
+  showing the page images plus their text.
+- **`tools/site2zim.py`**: a static HTML site, as a folder or a `.zip`. It recognizes the offline zips from
+  [LEMON Manuals](https://lemon-manuals.la), which carry factory-style repair information for most US and Canadian
+  vehicles from 1960 to 2025: color wiring diagrams, connector views, TSBs, DTC indexes, specs and labor
+  times. Pick your vehicle by year, model and **engine code** (the 8th character of a VIN on most US
+  vehicles), download the zip and run:
+
+  ```bash
+  pip install libzim pillow
+  tools/site2zim.py "LEMON 2016 Ford F-150 XLT, 4D Pickup Extra Cab, 3.5L Eng VIN G, 4WD.zip"
+  ```
+
+  No options are needed. The title, name and output file come from the manual itself, and pages about other trims
+  are kept out of title suggestions. Copy the `.zim` into `content/` on the stick.
+
+Only convert material you're entitled to keep a copy of, and don't publish what isn't yours to share.
 
 ## Philosophy and License
 
