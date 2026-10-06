@@ -5,8 +5,11 @@ All notable changes to Lighthouse. The version number lives in `VERSION`
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-06
+
 First real builds of both ISOs, boot-tested in QEMU (amd64 BIOS + UEFI, arm64 UEFI)
-and flashed to a real stick. amd64 booted on real hardware and the library opened (2026-10-01).
+and flashed to a real stick. amd64 boots on real hardware: library, Wi-Fi, persistence across reboots
+and the failsafe entry all checked (2026-10-06). arm64 is tested in QEMU only.
 
 ### Added
 - **Persistence:** a fresh stick gets a 4 GiB ext4 partition labelled `persistence`, and the
