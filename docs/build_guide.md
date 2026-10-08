@@ -24,7 +24,7 @@ This guide will walk you through the process of building the Lighthouse USB from
    ```bash
    sudo apt install qemu-user-static binfmt-support
    ```
-   `build_iso.sh` checks for these and for a registered binfmt handler before starting a cross-build. The arm64 ISO boots UEFI only (there is no syslinux on arm64).
+   `build_iso.sh` checks for these and for a registered binfmt handler before starting a cross-build. The arm64 ISO boots UEFI only (there is no syslinux on arm64). It is QEMU-tested only (Cortex-A72 + AAVMF); it has not been booted on real arm64 hardware, and it will not boot Apple Silicon Macs, Chromebooks or a Raspberry Pi without third-party UEFI firmware.
 
 ## Step 1: Clone the Repository
 

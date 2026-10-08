@@ -40,14 +40,11 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
    Only matters if anyone runs `updater.py` from the stick. From pop-os:
    `scp ~/Lighthouse/{updater.py,manifest.json,VERSION} picebox:/tmp/` then on picebox:
    `sudo mount -o remount,rw /mnt/lighthouse && sudo cp /tmp/{updater.py,manifest.json,VERSION} /mnt/lighthouse/ && sudo mount -o remount,ro /mnt/lighthouse`
-5. **(you) arm64 on real hardware: suggest dropping it** unless you own a UEFI arm64 machine. The image
-   boots generic UEFI only: not Apple Silicon Macs, Chromebooks, or a Raspberry Pi without third-party
-   UEFI firmware (picebox's Pi 5 doesn't count). QEMU (Cortex-A72 + AAVMF) boots it fine. If you agree,
-   this item becomes "arm64: QEMU-tested only" in the README.
 
 ## [IN PROGRESS]
 
 ## [COMPLETED]
+- 2026-10-08: arm64 real-hardware test dropped (Jake): no UEFI arm64 machine on hand; build guide now says QEMU-tested only.
 
 - 2026-10-01 notes moved from PENDING: data partition verified on Linux (picebox mounts it,
   kiwix-serve serves the ZIMs); amd64 ISO rebuilt with wpasupplicant + persistence, `build_usb.sh`
