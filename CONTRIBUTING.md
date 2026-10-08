@@ -59,10 +59,13 @@ number ([Semantic Versioning](https://semver.org/)). Everything else reads it:
 `/etc/lighthouse-release` inside the Live OS, and the copy on the USB stick.
 Never hard-code a version anywhere else.
 
-To cut a release:
-Changes land under `## [Unreleased]` at the top of `CHANGELOG.md` as they are made.
+Changes land under `## [Unreleased]` at the top of `CHANGELOG.md` as they are made. To cut a release:
 
 1. Update `VERSION` and rename `[Unreleased]` to a matching `## [x.y.z] - YYYY-MM-DD` entry in
-   `CHANGELOG.md` (the test suite fails if they disagree).
-2. Run `python3 -m unittest discover -s tests`.
+   `CHANGELOG.md` (the test suite fails if they disagree). Add a fresh `## [Unreleased]` above it and
+   update the compare links at the bottom.
+2. Run `python3 -m unittest discover -s tests` and `shellcheck *.sh`.
 3. Commit as `chore: release vx.y.z`, then tag it: `git tag -a vx.y.z -m "Lighthouse x.y.z"`.
+4. Rebuild the ISOs so their volume ID and `/etc/lighthouse-release` carry the new version
+   (`sudo ./build_iso.sh amd64`, `sudo ./build_iso.sh arm64`); each lands in `dist/`.
+5. Push: `git push origin master && git push origin vx.y.z`.

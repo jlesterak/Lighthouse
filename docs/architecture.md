@@ -53,8 +53,9 @@ The bootable operating system is explicitly generated using Debian's `live-build
 - **Desktop Environment:** XFCE (chosen for extremely low memory usage, allowing it to run on older or lower-spec hardware).
 - **Customizations:**
   - Kiwix is pre-installed: the `kiwix` package (kiwix-desktop) to read ZIMs, and `kiwix-tools` for `kiwix-serve`, which shares the library over the local network.
-  - `aria2` and `python3` are included for running the updater tools from within the live environment.
-  - The desktop background is customized to display clear visual instructions on how to use the software.
+  - `python3` is included for running the updater from within the live environment (plus `aria2`, `curl`, `wget`).
+  - Wi-Fi (with `wpasupplicant`) and common Wi-Fi/GPU firmware, so the stick works on whatever PC is at hand.
+  - Marble for maps (only its built-in offline maps; it has no tile cache of its own).
 
 ## 4. The Unified Orchestrator (`setup.sh`)
 

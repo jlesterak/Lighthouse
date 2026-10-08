@@ -10,6 +10,15 @@ All notable changes to Lighthouse. The version number lives in `VERSION`
   (`lighthouse-<version>-<arch>.iso` plus a `.sha256`), owned by the user who ran sudo, so
   building the other architecture or the next version never loses the last good image.
 
+### Fixed
+- Docs caught up with the code: Windows reader path (`readers/windows/kiwix-desktop.exe`), no Mac reader
+  on the stick, persistence, failsafe entry and `kiwix-serve` in the user guide, the OS reserve,
+  persistence and `--update-os` in the build guide; no more claimed custom wallpaper.
+- `setup.sh` no longer offers the arm64 ISO for Apple Silicon Macs, Chromebooks or a stock Raspberry
+  Pi, none of which boot a generic UEFI arm64 image.
+- README no longer recommends `wikihow_en_all`, which Kiwix removed.
+- CHANGELOG compare links include 0.3.0.
+
 ## [0.3.0] - 2026-10-06
 
 First real builds of both ISOs, boot-tested in QEMU (amd64 BIOS + UEFI, arm64 UEFI)
@@ -90,6 +99,7 @@ Initial Gemini-built version (tagged retroactively): resumable updater with Kiwi
 search, manifest, reader fetcher, Debian live-build config for amd64/arm64,
 USB flasher, and the `setup.sh` menu.
 
-[Unreleased]: https://github.com/jlesterak/Lighthouse/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/jlesterak/Lighthouse/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/jlesterak/Lighthouse/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/jlesterak/Lighthouse/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/jlesterak/Lighthouse/releases/tag/v0.1.0

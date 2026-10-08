@@ -48,11 +48,16 @@ Before we build the USB, we need to download the knowledge base and the cross-pl
 
 ## Step 3: Build the Live OS ISO
 
-Lighthouse uses Debian's `live-build` toolchain to construct a customized XFCE Live environment featuring Kiwix and Marble (Offline Maps).
+Lighthouse uses Debian's `live-build` toolchain to construct a customized XFCE Live environment featuring Kiwix and Marble.
 
 1. From the `setup.sh` interactive menu, choose Option **3** (Build Live OS ISO).
 2. The script will automatically trigger `build_iso.sh` as root, download the base Debian packages, and assemble the `.iso` file. This process can take 30-60 minutes.
-3. Once completed, you will find a file named `live-image-amd64.hybrid.iso` inside the `LiveOS/` directory.
+3. Once completed, you will find `live-image-<arch>.hybrid.iso` inside the `LiveOS/` directory (the one
+   `build_usb.sh` flashes), and a versioned copy, `dist/lighthouse-<version>-<arch>.iso` with its `.sha256`.
+   The arm64 ISO cross-builds under qemu-user and takes about 2 hours.
+
+To flash a kept ISO from `dist/` instead of the last build, pass it in `ISO_FILE`:
+`sudo ISO_FILE=dist/lighthouse-0.3.0-arm64.iso ./build_usb.sh /dev/sdX arm64`.
 
 ## Step 4: Flash the USB Drive
 
@@ -72,7 +77,13 @@ Finally, we must partition and format the physical USB drive to accept both the 
 - Safety checks first: it refuses partitions (give it the whole disk) and any disk holding the running system (`/`, `/boot`, swap, even under LUKS/LVM), asks for `yes-wipe` if the disk isn't a removable USB device, and checks the ISO plus content fit.
 - It shows the disk and makes you type its device name to confirm.
 - It uses `dd` to flash the custom `live-image-<arch>.hybrid.iso` to the start of the drive.
-- It appends a new `exFAT` partition labeled `LIGHTHOUSE` in the remaining space, after checking exactly one new partition appeared (so it can never format one of the ISO's own partitions).
-- It mounts the new partition and copies over your `content/` folder, `readers/` folder, `updater.py` and `manifest.json`.
+- It leaves a 4 GiB OS reserve after the ISO (`OS_RESERVE_GIB`), then appends a 4 GiB ext4 `persistence` partition (`PERSIST_GIB`, 0 for none) and an `exFAT` partition labeled `LIGHTHOUSE` in the rest, after checking exactly that many new partitions appeared (so it can never format one of the ISO's own partitions).
+- It mounts the new partition and copies over your `content/` folder, `readers/` folder, `updater.py`, `manifest.json` and `VERSION`.
+
+### Updating only the Live OS
+`sudo ./build_usb.sh --update-os /dev/sdX [amd64|arm64]` writes a newer ISO into the OS reserve and puts the
+`persistence` and `LIGHTHOUSE` partitions back exactly where they were, so the library is kept. It refuses an
+ISO bigger than the reserve before writing anything. It does not refresh `updater.py` or `manifest.json` on the
+stick; copy those over by hand when they change.
 
 Once the script completes, your Lighthouse USB is fully operational and ready to be stored in your emergency kit.

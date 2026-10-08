@@ -19,6 +19,10 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-10-08: Docs audit against the code: user guide (Windows reader path, no Mac reader, persistence,
+  failsafe, kiwix-serve, Android OTG fallback), build guide (OS reserve, persistence, `--update-os`,
+  `dist/`), architecture (no custom wallpaper), README (wikihow removed from Kiwix), `setup.sh` arm64
+  hint (not Apple Silicon/Chromebook/stock Pi), CHANGELOG 0.3.0 links, CONTRIBUTING release steps.
 - 2026-10-08: `build_iso.sh` copies each finished ISO to `dist/lighthouse-<version>-<arch>.iso`
   with a `.sha256` (chowned back to the sudo user); the copy step tested on a fake ISO, shellcheck clean.
 - 2026-10-06: Boot test 2 passed on real amd64 hardware (Jake): Wi-Fi connects, persistence

@@ -27,7 +27,7 @@ Lighthouse/
 ├── build_usb.sh          # The automated script to format and build the USB drive
 ├── get_readers.sh        # Utility script to download the Kiwix binaries
 ├── tools/                # Turn your own manuals into ZIMs (pdf2zim.py, site2zim.py)
-├── tests/                # Updater test suite (python3 -m unittest discover -s tests)
+├── tests/                # Test suite (python3 -m unittest discover -s tests)
 ├── CHANGELOG.md          # Release history
 ├── LICENSE               # GPLv3 Open Source License
 └── CONTRIBUTING.md       # Guidelines for contributing to Lighthouse (incl. releases)
@@ -63,7 +63,6 @@ and the OpenStreetMap wiki. These are also worth adding from the [Kiwix library]
 | `outdoors.stackexchange.com_en_all` | Camping, navigation, wilderness skills |
 | `cooking.stackexchange.com_en_all` | Food preparation and preservation |
 | `appropedia_en_all` | Appropriate technology, sustainability, off-grid builds |
-| `wikihow_en_all` | Step-by-step how-tos for nearly everything |
 | `gutenberg_en_all` | Project Gutenberg's public-domain books (very large) |
 | `wiktionary_en_all` | Dictionary |
 

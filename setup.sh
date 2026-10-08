@@ -52,7 +52,7 @@ while true; do
             echo "Launching Live OS ISO Builder..."
             echo "Select target architecture:"
             echo "  1) amd64 (Standard Intel/AMD PCs - Recommended)"
-            echo "  2) arm64 (Apple Silicon Macs, modern Chromebooks, Raspberry Pi)"
+            echo "  2) arm64 (UEFI arm64 PCs and boards only; not Apple Silicon Macs, Chromebooks or a stock Raspberry Pi)"
             read -r -p "Enter choice [1-2]: " arch_choice
             
             if [ "$arch_choice" == "1" ]; then
