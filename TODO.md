@@ -19,6 +19,8 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [COMPLETED]
 
+- 2026-10-08: `build_iso.sh` copies each finished ISO to `dist/lighthouse-<version>-<arch>.iso`
+  with a `.sha256` (chowned back to the sudo user); the copy step tested on a fake ISO, shellcheck clean.
 - 2026-10-06: Boot test 2 passed on real amd64 hardware (Jake): Wi-Fi connects, persistence
   remembers the network across reboot, the failsafe entry boots fresh. Released v0.3.0
   (VERSION, CHANGELOG, local tag). amd64 Wi-Fi/wpasupplicant fix from 2026-10-01 verified.

@@ -5,6 +5,11 @@ All notable changes to Lighthouse. The version number lives in `VERSION`
 
 ## [Unreleased]
 
+### Added
+- `build_iso.sh` keeps a versioned copy of each finished ISO in `dist/`
+  (`lighthouse-<version>-<arch>.iso` plus a `.sha256`), owned by the user who ran sudo, so
+  building the other architecture or the next version never loses the last good image.
+
 ## [0.3.0] - 2026-10-06
 
 First real builds of both ISOs, boot-tested in QEMU (amd64 BIOS + UEFI, arm64 UEFI)

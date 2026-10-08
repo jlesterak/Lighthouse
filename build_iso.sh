@@ -127,10 +127,22 @@ if [ -f "$ISO_FILE" ] && ! sfdisk -d "$ISO_FILE" > /dev/null 2>&1; then
 fi
 
 if [ -f "$ISO_FILE" ]; then
+    # Keep a versioned copy (and its checksum) in dist/, so a later build for the
+    # other architecture, or the next version, doesn't leave you without this one.
+    VERSION=$(cat ../VERSION 2>/dev/null || echo unknown)
+    DIST_NAME="lighthouse-${VERSION}-${TARGET_ARCH}.iso"
+    mkdir -p ../dist
+    cp "$ISO_FILE" "../dist/$DIST_NAME"
+    (cd ../dist && sha256sum "$DIST_NAME" > "$DIST_NAME.sha256")
+    # Built under sudo: hand dist/ back to the user who ran it
+    if [ -n "${SUDO_UID:-}" ] && [ -n "${SUDO_GID:-}" ]; then
+        chown "$SUDO_UID:$SUDO_GID" ../dist "../dist/$DIST_NAME" "../dist/$DIST_NAME.sha256"
+    fi
     echo "-------------------------------------------------"
     echo "================================================="
     echo " Build Complete!"
     echo " Your Live OS ISO is located at: LiveOS/$ISO_FILE"
+    echo " Versioned copy: dist/$DIST_NAME (+ .sha256)"
     echo " You can now run build_usb.sh to flash it to a USB drive."
     echo "================================================="
 else
