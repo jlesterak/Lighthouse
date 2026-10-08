@@ -5,20 +5,54 @@ Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
 
-- 2026-10-01: data partition verified on Linux: picebox mounts the exFAT LIGHTHOUSE partition (UUID 7EBD-D290), and kiwix-serve serves all 5 ZIMs with working full-text search. It now stays plugged into picebox as the LAN library source (http://wiki.lan). Boot and Windows/macOS/Android checks still open.
-- 2026-10-01: **amd64 booted on real hardware (Jake) and the library opened.** Wi-Fi said "not ready": the image lacked `wpasupplicant` (recommends are off). Fixed in the package list; needs a rebuild (0.3.0) and a re-test of Wi-Fi.
-- 2026-10-01: amd64 ISO rebuilt (wpasupplicant, persistence), build_usb.sh tested 15/15 on a loop device, the 1 TB stick re-flashed with the new layout (OS reserve, 4 GiB persistence, LIGHTHOUSE) and its 27.5 GB of content restored from a verified backup.
-- (you) arm64 is untested on real hardware (QEMU only).
-- (you) Open the LIGHTHOUSE partition on Windows, macOS and Android. It holds the amd64 build,
-  the readers and 5 test ZIMs (medicine, CD3WD, water, food, ham; all SHA-256 verified).
-- (you, sudo) Rebuild both ISOs so dist/ carries 0.3.0:
-  `sudo ./build_iso.sh amd64` and `sudo ./build_iso.sh arm64`
-- (you) push the release: `git push origin master && git push origin v0.3.0`
+Nothing left an agent can do without Jake's hands. Jake's list, in priority order
+(checked 2026-10-08):
+
+1. **(you) Publish v0.3.0 on GitHub** (2 min). Pushes the release tag plus the docs/dist
+   commits after it:
+   `cd ~/Lighthouse && python3 -m unittest discover -s tests && git push origin master && git push origin v0.3.0`
+   Look for: the tag on https://github.com/jlesterak/Lighthouse/tags. icebox's mirror picks it up on its own.
+2. **(you, sudo) Rebuild the ISOs** so `dist/` holds 0.3.0 (`dist/` still has the 0.2.0 pair).
+   `build_iso.sh` now drops `dist/lighthouse-0.3.0-<arch>.iso` + `.sha256` itself:
+   `cd ~/Lighthouse && sudo ./build_iso.sh amd64 2>&1 | tee build-amd64.log && sudo ./build_iso.sh arm64 2>&1 | tee build-arm64.log`
+   (amd64 ~30-60 min, arm64 ~2 h under qemu-user; can run unattended). Then: `ls dist/ && (cd dist && sha256sum -c *.sha256)`
+   and `rm dist/lighthouse-0.2.0-*.iso` once both are OK.
+   - arm64 is the one that matters: the 0.2.0 arm64 image predates the Wi-Fi fix and persistence.
+   - amd64 only changes the label: the image on the stick (built 2026-10-01 after the Wi-Fi and
+     persistence fixes, verified on hardware 2026-10-06) says "Lighthouse 0.2.0 amd64" but nothing in
+     `LiveOS/` changed since. **Don't reflash the stick for it**; keep it serving the library on picebox.
+3. **(you) Open the LIGHTHOUSE partition on Windows, macOS and Android.** Takes the library offline
+   while the stick is away: on picebox first `docker stop kiwix && sudo umount /mnt/lighthouse`, unplug.
+   Checklist (the user guide says the same, so this also tests the guide):
+   - [ ] Windows: a `LIGHTHOUSE` drive letter appears. Expect possibly one "format this disk?" prompt
+         for the ISO area: click Cancel. No prompt for `persistence` (type 83 is hidden).
+   - [ ] Windows: `readers\windows\kiwix-desktop.exe` starts (if a VCRUNTIME/MSVCP DLL error:
+         run `vc_redist.x64.exe` from that folder) and opens a ZIM from `content\` with search working.
+   - [ ] macOS: `LIGHTHOUSE` mounts in Finder and files open; there is no Mac reader on the stick
+         (Kiwix is App Store only), so just check the ZIMs are readable/copyable.
+   - [ ] Android (OTG): the file manager shows the drive; `readers/kiwix-android.apk` installs; Kiwix opens
+         a ZIM straight from the stick. If Kiwix can't see the stick, note which phone/Android version
+         (the guide's fallback is copying the ZIM to the phone).
+   - [ ] Back on picebox: plug in, `sudo mount /mnt/lighthouse && docker start kiwix`, check http://wiki.home.arpa.
+   Tell an agent what failed; it fixes the docs or scripts.
+4. **(you, optional) Refresh the stick's top-level files.** The stick was flashed 2026-10-01 10:48, before
+   the updater fix for Wikimedia-hosted ZIMs (403 stall, 38bd21c), and its `VERSION` says 0.2.0.
+   Only matters if anyone runs `updater.py` from the stick. From pop-os:
+   `scp ~/Lighthouse/{updater.py,manifest.json,VERSION} picebox:/tmp/` then on picebox:
+   `sudo mount -o remount,rw /mnt/lighthouse && sudo cp /tmp/{updater.py,manifest.json,VERSION} /mnt/lighthouse/ && sudo mount -o remount,ro /mnt/lighthouse`
+5. **(you) arm64 on real hardware: suggest dropping it** unless you own a UEFI arm64 machine. The image
+   boots generic UEFI only: not Apple Silicon Macs, Chromebooks, or a Raspberry Pi without third-party
+   UEFI firmware (picebox's Pi 5 doesn't count). QEMU (Cortex-A72 + AAVMF) boots it fine. If you agree,
+   this item becomes "arm64: QEMU-tested only" in the README.
 
 ## [IN PROGRESS]
 
 ## [COMPLETED]
 
+- 2026-10-01 notes moved from PENDING: data partition verified on Linux (picebox mounts it,
+  kiwix-serve serves the ZIMs); amd64 ISO rebuilt with wpasupplicant + persistence, `build_usb.sh`
+  tested 15/15 on a loop device, the 1 TB stick re-flashed with the new layout and its content restored.
+  The Wi-Fi re-test passed in boot test 2 (2026-10-06).
 - 2026-10-08: Docs audit against the code: user guide (Windows reader path, no Mac reader, persistence,
   failsafe, kiwix-serve, Android OTG fallback), build guide (OS reserve, persistence, `--update-os`,
   `dist/`), architecture (no custom wallpaper), README (wikihow removed from Kiwix), `setup.sh` arm64
