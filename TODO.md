@@ -18,7 +18,8 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
    (amd64 ~30-60 min, arm64 ~2 h under qemu-user; can run unattended). Then: `ls dist/ && (cd dist && sha256sum -c *.sha256)`
    and `rm dist/lighthouse-0.2.0-*.iso` once both are OK.
    - 2026-10-09: **arm64 0.3.0 built and `sha256sum -c` OK.** amd64 rebuild still to do (label only); the old
-     `lighthouse-0.2.0-arm64.iso` is superseded and can go now (Jake's call).
+     `lighthouse-0.2.0-arm64.iso` deleted 2026-10-09. Standing rule (Jake): once a newer ISO for the same arch
+     passes `sha256sum -c`, delete the superseded one without asking (keep 0.2.0 amd64 until 0.3.0 amd64 exists).
    - arm64 is the one that matters: the 0.2.0 arm64 image predates the Wi-Fi fix and persistence.
    - amd64 only changes the label: the image on the stick (built 2026-10-01 after the Wi-Fi and
      persistence fixes, verified on hardware 2026-10-06) says "Lighthouse 0.2.0 amd64" but nothing in
