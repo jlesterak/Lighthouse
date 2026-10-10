@@ -45,8 +45,8 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
    `sudo mount -o remount,rw /mnt/lighthouse && sudo cp /tmp/{updater.py,manifest.json,VERSION} /mnt/lighthouse/ && sudo mount -o remount,ro /mnt/lighthouse`
 
 ## [IN PROGRESS]
-- **NAEB ZIM** (Jake, 2026-10-09): Native American Ethnobotany DB (http://naeb.brit.org, BRIT; HTTP only, no robots.txt;
-  ~44.7k use records + ~4.4k species + tribes, ~50k pages of ~4-12 KB). Mirror running on pop-os since 17:08 in
+- **NAEB ZIM** [PAUSED] (Jake, 2026-10-09): Native American Ethnobotany DB (http://naeb.brit.org, BRIT; HTTP only, no robots.txt;
+  ~44.7k use records + ~4.4k species + tribes, ~50k pages of ~4-12 KB). PAUSED (Jake 2026-10-09: offline for a while; ~1k pages done, a rerun starts over). Mirror in
   `~/naeb-mirror` (`run.sh`, wget, 0.25 s random wait, ~4-5 h; rerun to resume, log `wget.log`, ends with `DONE`).
   Then: `tools/site2zim.py ~/naeb-mirror/naeb.brit.org --name naeb_ethnobotany --title "Native American Ethnobotany"
   --main index.html --title-sep " - "` (check a page title first), open it in kiwix-serve, then onto the stick +
