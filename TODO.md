@@ -8,7 +8,7 @@ Findings come from an audit of the code on 2026-09-30.
 Nothing left an agent can do without Jake's hands. Jake's list, in priority order
 (checked 2026-10-08):
 
-1. **(you) Publish v0.3.0 on GitHub** (2 min). Pushes the release tag plus the docs/dist
+1. **[DONE 2026-10-08: v0.3.0 pushed with its tag]** ~~Publish v0.3.0 on GitHub~~ (2 min). Pushes the release tag plus the docs/dist
    commits after it:
    `cd ~/Lighthouse && python3 -m unittest discover -s tests && git push origin master && git push origin v0.3.0`
    Look for: the tag on https://github.com/jlesterak/Lighthouse/tags. icebox's mirror picks it up on its own.
