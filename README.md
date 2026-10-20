@@ -29,7 +29,7 @@ Lighthouse/
 ├── tools/                # Turn your own manuals into ZIMs (pdf2zim.py, site2zim.py)
 ├── tests/                # Test suite (python3 -m unittest discover -s tests)
 ├── CHANGELOG.md          # Release history
-├── LICENSE               # GPLv3 Open Source License
+├── LICENSE               # The Unlicense (public domain)
 └── CONTRIBUTING.md       # Guidelines for contributing to Lighthouse (incl. releases)
 ```
 
@@ -93,4 +93,4 @@ Only convert material you're entitled to keep a copy of, and don't publish what 
 
 Lighthouse is built entirely upon Free and Open Source Software (FOSS). It relies heavily on the incredible work of the [Kiwix](https://www.kiwix.org/) project. 
 
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
+This project is released into the public domain under [The Unlicense](LICENSE).

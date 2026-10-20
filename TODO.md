@@ -53,6 +53,7 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
   icebox:~/kit next to the LEMON ZIM.
 
 ## [COMPLETED]
+- 2026-10-20: Relicensed GPL-3.0 → The Unlicense (Jake): LICENSE and README updated; sole author, so no consent needed.
 - 2026-10-08: arm64 real-hardware test dropped (Jake): no UEFI arm64 machine on hand; build guide now says QEMU-tested only.
 
 - 2026-10-01 notes moved from PENDING: data partition verified on Linux (picebox mounts it,
