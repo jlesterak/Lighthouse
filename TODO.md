@@ -47,8 +47,8 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
 ## [IN PROGRESS]
 - **NAEB ZIM** [PAUSED] (Jake, 2026-10-09): Native American Ethnobotany DB (http://naeb.brit.org, BRIT; HTTP only, no robots.txt;
   ~44.7k use records + ~4.4k species + tribes, ~50k pages of ~4-12 KB). PAUSED (Jake 2026-10-09: offline for a while; ~1k pages done, a rerun starts over). Mirror in
-  `~/_archive/2026-10-24_cleanup/naeb-mirror` (archived 2026-10-24, Jake said it can go; restore it before resuming; `run.sh`, wget, 0.25 s random wait, ~4-5 h; rerun to resume, log `wget.log`, ends with `DONE`).
-  Then: `tools/site2zim.py ~/_archive/2026-10-24_cleanup/naeb-mirror/naeb.brit.org --name naeb_ethnobotany --title "Native American Ethnobotany"
+  the local naeb-mirror copy (archived 2026-10-24; restore it before resuming; `run.sh`, wget, 0.25 s random wait, ~4-5 h; rerun to resume, log `wget.log`, ends with `DONE`).
+  Then: `tools/site2zim.py <naeb-mirror>/naeb.brit.org --name naeb_ethnobotany --title "Native American Ethnobotany"
   --main index.html --title-sep " - "` (check a page title first), open it in kiwix-serve, then onto the stick +
   icebox:~/kit next to the LEMON ZIM.
 
