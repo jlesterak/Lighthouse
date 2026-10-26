@@ -45,12 +45,10 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
    `sudo mount -o remount,rw /mnt/lighthouse && sudo cp /tmp/{updater.py,manifest.json,VERSION} /mnt/lighthouse/ && sudo mount -o remount,ro /mnt/lighthouse`
 
 ## [IN PROGRESS]
-- **NAEB ZIM** (Jake, 2026-10-09): Native American Ethnobotany DB (http://naeb.brit.org). Mirror finished 2026-10-25
-  (49.3k files, 576 MB in ~/naeb-mirror); built `content/naeb_ethnobotany.zim` (34 MB, 49,303 entries, full-text search checked).
-  Every page has the same `<title>`, so title suggestions are useless; search works. **Left:** open it in kiwix-serve, then
-  onto the stick + icebox:~/kit next to the LEMON ZIM (needs Jake's OK for the icebox copy); delete ~/naeb-mirror after.
-
 ## [COMPLETED]
+- 2026-10-25: NAEB ZIM (Native American Ethnobotany, naeb.brit.org): mirrored (49.3k pages), built `naeb_ethnobotany.zim` (34 MB)
+  with tools/site2zim.py; on the stick (`content/`, served by picebox kiwix, search checked), icebox `~/kit/zim/`, pop-os `content/`.
+  Every page shares one `<title>`, so title suggestions are useless; full-text search works. `~/naeb-mirror` (576 MB) can be deleted.
 (Entries before 2026-10-08 archived 2026-10-24; CHANGELOG.md and git history have them.)
 - 2026-10-20: Relicensed GPL-3.0 → The Unlicense (Jake): LICENSE and README updated; sole author, so no consent needed.
 - 2026-10-08: arm64 real-hardware test dropped (Jake): no UEFI arm64 machine on hand; build guide now says QEMU-tested only.
