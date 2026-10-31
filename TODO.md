@@ -44,8 +44,8 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
 ## [COMPLETED]
 - 2026-10-25: NAEB ZIM (Native American Ethnobotany, naeb.brit.org): mirrored (49.3k pages), built `naeb_ethnobotany.zim` (34 MB)
   with tools/site2zim.py; on the stick (`content/`, served by picebox kiwix, search checked), icebox `~/kit/zim/`, pop-os `content/`.
-  Every page shares one `<title>`, so title suggestions are useless; full-text search works. The mirror (576 MB) is in
-  `~/_archive/2026-10-24_cleanup/naeb-mirror` (archive purge date 2026-10-29).
+  Every page shares one `<title>`, so title suggestions are useless; full-text search works. The raw mirror (576 MB) was purged
+  with the 2026-10-24 archive run on 2026-10-29 (gone from `~/_archive/`, checked 2026-10-31); the ZIM is the keeper.
 (Entries before 2026-10-08 archived 2026-10-24; CHANGELOG.md and git history have them.)
 - 2026-10-08: v0.3.0 published on GitHub with its tag (checked on origin 2026-10-26).
 - 2026-10-20: Relicensed GPL-3.0 → The Unlicense (Jake): LICENSE and README updated; sole author, so no consent needed.
