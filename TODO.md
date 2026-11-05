@@ -4,6 +4,7 @@ Resumed 2026-09-30 after a break since 2026-03-05 (Claude Code).
 Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
+- [PENDING] Add Khan Academy offline via Kolibri (Jake, 2026-11-04): K-12 math/science channels, size it before download.
 
 Nothing left an agent can do without Jake's hands. Jake's list, in priority order
 (checked 2026-10-08; v0.3.0 publish done, see COMPLETED):
