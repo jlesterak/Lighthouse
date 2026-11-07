@@ -4,12 +4,17 @@ Resumed 2026-09-30 after a break since 2026-03-05 (Claude Code).
 Findings come from an audit of the code on 2026-09-30.
 
 ## [PENDING]
-- [PENDING] Add Khan Academy offline via Kolibri (Jake, 2026-11-04): K-12 math/science channels, size it before download.
+- [PENDING] Add Khan Academy offline (Jake, 2026-11-04). Sized 2026-11-07, waiting on Jake's pick:
+  - Kiwix ZIM `khanacademy_en_all_2023-03.zim`: 180 GB, all subjects, videos + exercises, no full-text index, from 2023-03.
+    Uses the readers already on the stick and picebox kiwix-serve (nothing new to run). Only the stick has room
+    (501 GB free); pop-os has 16 GB free and icebox 92 GB, so it would have to download on picebox straight to the stick.
+  - Kolibri channel "Khan Academy (English - US curriculum)" (studio id c9d7f950ab6b5a1199e3d6c10d7f0103): 68 GB in full,
+    and a math/science subset can be imported. It needs the Kolibri app or server (a new service) and isn't readable by Kiwix.
 
 Nothing left an agent can do without Jake's hands. Jake's list, in priority order
 (checked 2026-10-08; v0.3.0 publish done, see COMPLETED):
 
-1. **(you, sudo) Rebuild the ISOs** so `dist/` holds 0.3.0 (`dist/` still has the 0.2.0 pair).
+1. **[IN PROGRESS 2026-11-07, Jake running amd64 build] (you, sudo) Rebuild the ISOs** so `dist/` holds 0.3.0 (`dist/` still has the 0.2.0 pair).
    `build_iso.sh` now drops `dist/lighthouse-0.3.0-<arch>.iso` + `.sha256` itself:
    `cd ~/Lighthouse && sudo ./build_iso.sh amd64 2>&1 | tee build-amd64.log && sudo ./build_iso.sh arm64 2>&1 | tee build-arm64.log`
    (amd64 ~30-60 min, arm64 ~2 h under qemu-user; can run unattended). Then: `ls dist/ && (cd dist && sha256sum -c *.sha256)`
@@ -35,7 +40,7 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
          (the guide's fallback is copying the ZIM to the phone).
    - [ ] Back on picebox: plug in, `sudo mount /mnt/lighthouse && docker start kiwix`, check http://wiki.home.arpa.
    Tell an agent what failed; it fixes the docs or scripts.
-3. **(you, optional) Refresh the stick's top-level files.** The stick was flashed 2026-10-01 10:48, before
+3. **(you; agent attempt 2026-11-07 blocked by the auto-mode remote-write rule) Refresh the stick's top-level files.** The stick was flashed 2026-10-01 10:48, before
    the updater fix for Wikimedia-hosted ZIMs (403 stall, 38bd21c), and its `VERSION` says 0.2.0.
    Only matters if anyone runs `updater.py` from the stick. From pop-os:
    `scp ~/Lighthouse/{updater.py,manifest.json,VERSION} picebox:/tmp/` then on picebox:
