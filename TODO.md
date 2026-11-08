@@ -22,13 +22,16 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
    - [ ] Back on picebox: plug in, `sudo mount /mnt/lighthouse && docker start kiwix`, check http://wiki.home.arpa.
    Tell an agent what failed; it fixes the docs or scripts.
 ## [IN PROGRESS]
-- [IN PROGRESS] Khan Academy ZIM build on picebox (started 2026-11-07 13:11, Jake approved). kolibri2zim 1.1.1 in venv `picebox:~/k2z`
+- [IN PROGRESS] Khan Academy ZIM build on picebox (restarted 2026-11-07 17:37 after a hang, Jake approved). kolibri2zim 1.1.1 in venv `picebox:~/k2z`
   (1.2.x needs Python 3.12; the pip build lacks JS assets, so `get_js_deps.sh` from tag v1.1.1 was run into the venv's
   `kolibri2zim/templates/assets`). Channel c9d7f950ab6b5a1199e3d6c10d7f0103 (English, US curriculum, 68 GB published), full,
   no re-encode, with a full-text index. Log `picebox:~/k2z.log`; output `/mnt/lighthouse/.k2z/out/khanacademy_en_us_2026-11.zim`
   (kept out of `content/` so kiwix's `*.zim` glob doesn't pick up a partial file).
-  2026-11-07 15:00: still in nodes processing, 11.9k downloads, `.zim.tmp` at 1.2 GB after ~1 h 50 m. If that rate holds,
-  68 GB is a multi-day run; check the rate again before planning around it. **The stick stays mounted rw until it's done.**
+  First run (13:11) hung at 16:35: zimscraperlib 3.1.1 `stream_file` calls `session.get()` with no timeout, so one silent
+  CDN connection froze the build forever (0 CPU, 0 I/O); no resume, so restarted from zero. **Local venv patch** in
+  `~/k2z/lib/python3.11/site-packages/zimscraperlib/download.py` (original at `download.py.orig`): timeout (30 s connect,
+  120 s read) plus up to 5 retries per file (log lines `PATCH retry`). A file failing all retries still fails the whole run.
+  Pre-hang rate ~0.75 GB/h, so 68 GB is ~4 days. Old log: `~/k2z.log.hung-2026-11-07`. **The stick stays mounted rw until it's done.**
   When done: mv into `content/`, `rm -rf /mnt/lighthouse/.k2z`, remount ro, `docker restart kiwix`, check search; copy to the icebox kit
   if there's room; delete `~/k2z`. Chose this over Kiwix's `khanacademy_en_all_2023-03` (180 GB, 2023, no full-text index) and Kolibri
   itself (a new service, not readable by Kiwix).
