@@ -1,4 +1,5 @@
-# Status (2026-11-07)
+# Status (2026-11-09)
+2026-11-09: Khan ZIM build healthy but slow: 15.4 GB in ~43 h (~0.36 GB/h), about a week more.
 2026-11-07: `dist/` now holds only the 0.3.0 amd64 and arm64 ISOs (both checksums OK). Khan Academy (US) ZIM building on picebox straight to the stick (TODO.md IN PROGRESS); stick files refreshed to 0.3.0.
 2026-11-04: Khan Academy via Kolibri queued (TODO.md).
 Released v0.3.0 (tag on GitHub since 2026-10-08). Unlicense since 2026-10-20. NAEB ethnobotany ZIM built and on the stick, icebox kit and pop-os `content/` (2026-10-25).
