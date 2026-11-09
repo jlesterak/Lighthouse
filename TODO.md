@@ -31,7 +31,7 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
   CDN connection froze the build forever (0 CPU, 0 I/O); no resume, so restarted from zero. **Local venv patch** in
   `~/k2z/lib/python3.11/site-packages/zimscraperlib/download.py` (original at `download.py.orig`): timeout (30 s connect,
   120 s read) plus up to 5 retries per file (log lines `PATCH retry`). A file failing all retries still fails the whole run.
-  Pre-hang rate ~0.75 GB/h, so 68 GB is ~4 days. Old log: `~/k2z.log.hung-2026-11-07`. **The stick stays mounted rw until it's done.**
+  Pre-hang rate ~0.75 GB/h, so 68 GB is ~4 days. 2026-11-09 12:19: `.zim.tmp` 15.4 GB after ~43 h (~0.36 GB/h, occasional connection-reset retries), so roughly a week more at this pace. Old log: `~/k2z.log.hung-2026-11-07`. **The stick stays mounted rw until it's done.**
   When done: mv into `content/`, `rm -rf /mnt/lighthouse/.k2z`, remount ro, `docker restart kiwix`, check search; copy to the icebox kit
   if there's room; delete `~/k2z`. Chose this over Kiwix's `khanacademy_en_all_2023-03` (180 GB, 2023, no full-text index) and Kolibri
   itself (a new service, not readable by Kiwix).
