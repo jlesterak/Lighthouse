@@ -22,16 +22,20 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
    - [ ] Back on picebox: plug in, `sudo mount /mnt/lighthouse && docker start kiwix`, check http://wiki.home.arpa.
    Tell an agent what failed; it fixes the docs or scripts.
 ## [IN PROGRESS]
-- [BLOCKED: Jake decides retry or drop] Khan Academy ZIM build on picebox. kolibri2zim 1.1.1 in venv `picebox:~/k2z` (local
-  timeout+retry patch in `zimscraperlib/download.py`, original `download.py.orig`), channel c9d7f950ab6b5a1199e3d6c10d7f0103
-  (English, US, 68 GB), output to `/mnt/lighthouse/.k2z/out/`. Log `picebox:~/k2z.log` (old: `~/k2z.log.hung-2026-11-07`).
-  2026-11-07 first run hung (no-timeout download), patched and restarted 17:37; ran at ~0.36 GB/h.
-  2026-11-11 09:43: **failed**: HTTP 404 on one subtitle file (`f6b8d91b2f720c24e768e0959227dd6d.vtt`) from
-  studio.learningequality.org; any failed file aborts the run and kolibri2zim removed its build folder, so no partial
-  output survives (checked 11-11: `.k2z/out` and `.k2z/tmp` empty, stick mounted ro, kiwix up). A retry needs the patch to
-  skip 404s (or drop subtitles) and another ~week of the stick mounted rw. Alternatives already rejected: Kiwix's
-  `khanacademy_en_all_2023-03` (180 GB, 2023, no full-text index), Kolibri itself (new service, not Kiwix-readable).
-  Cleanup either way: `rm -rf /mnt/lighthouse/.k2z`; if dropped, delete `~/k2z`.
+- [BLOCKED: Jake runs the rw remount] Khan Academy ZIM build on picebox, **retry approved 2026-11-11**. kolibri2zim 1.1.1 in
+  venv `picebox:~/k2z`, channel c9d7f950ab6b5a1199e3d6c10d7f0103 (English, US, 68 GB), output `/mnt/lighthouse/.k2z/out/`.
+  Local patches (originals kept as `*.orig` next to each file; full diff in `tools/kolibri2zim-1.1.1-lighthouse.patch`):
+  `zimscraperlib/download.py` timeout+retry (11-07 hang fix); `kolibri2zim/debug.py` + `scraper.py` (11-11): HTTP 404/410
+  is not retried, the file is logged `PATCH skip file ...` and left out (a gone subtitle is also dropped from the player;
+  a gone exercise/HTML5 archive skips that node, `PATCH skip ... node`). Other errors still fail the run as before.
+  History: 11-07 first run hung (no timeout); 11-07 17:37 restart ran ~4 days at ~0.36 GB/h, then 11-11 09:43 died on one
+  404 subtitle (`f6b8d91b2f720c24e768e0959227dd6d.vtt`) and kolibri2zim deleted its build folder (no partial output).
+  **Next:** Jake: `ssh -t picebox sudo mount -o remount,rw /mnt/lighthouse` (fstab mounts it ro; no sudo-free way). Then
+  `ssh picebox ~/k2z-start.sh` (checks rw, cleans `.k2z`, moves `~/k2z.log` aside with a date suffix, starts kolibri2zim
+  detached with setsid). Expect ~a week with the stick rw. Not resumable mid-run: a restart starts over.
+  Monitor: `ssh picebox 'pgrep -af bin/kolibri2zim; echo age=$(( $(date +%s) - $(stat -c %Y ~/k2z.log) ))s; grep -c download_to ~/k2z.log; grep -c "PATCH skip" ~/k2z.log; grep -cE "ERROR|Interrupting|FAILURE" ~/k2z.log; ls -la /mnt/lighthouse/.k2z/out/'`.
+  Alternatives already rejected: Kiwix's `khanacademy_en_all_2023-03` (180 GB, 2023, no full-text index), Kolibri itself.
+  When done: ZIM into `content/`, remount ro, `rm -rf /mnt/lighthouse/.k2z`. If dropped: also delete `~/k2z` and `~/k2z-start.sh`.
 ## [COMPLETED]
 - 2026-11-07: amd64 0.3.0 ISO built; both 0.3.0 ISOs pass `sha256sum -c`; `lighthouse-0.2.0-amd64.iso` deleted (standing rule).
   The stick is not reflashed: amd64 only changed the label.

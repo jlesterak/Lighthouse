@@ -1,0 +1,134 @@
+--- a/zimscraperlib/download.py
++++ b/zimscraperlib/download.py
+@@ -166,7 +166,7 @@
+     return session
+ 
+ 
+-def stream_file(
++def _stream_file_once(
+     url: str,
+     fpath: Optional[pathlib.Path] = None,
+     byte_stream: Optional[io.BytesIO] = None,
+@@ -201,6 +201,7 @@
+         stream=True,
+         proxies=proxies,
+         headers=headers,
++        timeout=(30, 120),  # local patch: upstream had none, hung forever
+     )
+     resp.raise_for_status()
+ 
+@@ -225,3 +226,24 @@
+     else:
+         fp.seek(0)
+     return total_downloaded, resp.headers
++
++
++def stream_file(url, fpath=None, byte_stream=None, *args, **kwargs):
++    # local patch (Lighthouse): retry stalled or dropped downloads from scratch
++    import time
++
++    for attempt in range(6):
++        try:
++            return _stream_file_once(url, fpath, byte_stream, *args, **kwargs)
++        except (
++            requests.exceptions.ConnectionError,
++            requests.exceptions.Timeout,
++            requests.exceptions.ChunkedEncodingError,
++        ) as exc:
++            if attempt == 5:
++                raise
++            logger.warning(f"PATCH retry {attempt + 1}/5 for {url}: {exc}")
++            if byte_stream is not None:
++                byte_stream.seek(0)
++                byte_stream.truncate()
++            time.sleep(10 * (attempt + 1))
+--- a/kolibri2zim/debug.py
++++ b/kolibri2zim/debug.py
+@@ -16,8 +16,20 @@
+ ON_DISK_THRESHOLD = 2**20 * 20  # 20MiB
+ 
+ 
++def is_gone(exc) -> bool:
++    # local patch (Lighthouse): HTTP 404/410 is permanent, so skip instead of retry/fail
++    resp = getattr(exc, "response", None)
++    return isinstance(exc, requests.exceptions.HTTPError) and getattr(
++        resp, "status_code", None
++    ) in (404, 410)
++
++
++def _retryable(exc) -> bool:
++    return not is_gone(exc)
++
++
+ # retry up to 3 times, with delay from 40s
+-@retry(stop_max_attempt_number=3, wait_exponential_multiplier=20000)
++@retry(stop_max_attempt_number=3, wait_exponential_multiplier=20000, retry_on_exception=_retryable)
+ def get_size_and_mime(url: str) -> tuple[int | None, str]:
+     logger.debug(f"get_size_and_mime({url=})")
+     _, headers = stream_file(
+@@ -39,7 +51,7 @@
+ 
+ 
+ # retry up to 5 times, with delay from 40s to 10mn
+-@retry(stop_max_attempt_number=5, wait_exponential_multiplier=20000)
++@retry(stop_max_attempt_number=5, wait_exponential_multiplier=20000, retry_on_exception=_retryable)
+ def download_to(
+     url: str,
+     fpath: pathlib.Path | None = None,
+--- a/kolibri2zim/scraper.py
++++ b/kolibri2zim/scraper.py
+@@ -38,6 +38,7 @@
+     ON_DISK_THRESHOLD,
+     download_to,
+     get_size_and_mime,
++    is_gone,
+     safer_reencode,
+ )
+ 
+@@ -205,13 +206,26 @@
+             if thumbnail:
+                 self.funnel_file(thumbnail["id"], thumbnail["ext"])
+             # fire the add_{kind}_node() method which will actually process it
+-            handler(node_id)
++            try:
++                handler(node_id)
++            except Exception as exc:
++                # local patch (Lighthouse): a 404/410 on a node's main file skips the node
++                if not is_gone(exc):
++                    raise
++                logger.warning(f"PATCH skip {kind} node {node_id}: {exc}")
+ 
+     def funnel_file(self, fid, fext):
+         """directly add a Kolibri file to the ZIM using same name"""
+ 
+         url, fname = get_kolibri_url_for(fid, fext)
+-        size, mimetype = get_size_and_mime(url)
++        try:
++            size, mimetype = get_size_and_mime(url)
++        except Exception as exc:
++            # local patch (Lighthouse): skip files gone from Studio (404/410)
++            if not is_gone(exc):
++                raise
++            logger.warning(f"PATCH skip file {fname}: {exc}")
++            return False
+ 
+         item_kw = {
+             "path": fname,
+@@ -236,6 +250,7 @@
+         with self.creator_lock:
+             self.creator.add_item_for(**item_kw)
+         logger.debug(f"Added {fname} from Studio")
++        return True
+ 
+     def download_to_disk(self, file_id, ext):
+         """download a Kolibri file to the build-dir using its filename"""
+@@ -410,7 +425,8 @@
+         # prepare list of subtitles for template
+         subtitles = []
+         for file in filter(lambda f: f["preset"] == "video_subtitle", files):
+-            self.funnel_file(file["id"], file["ext"])
++            if self.funnel_file(file["id"], file["ext"]) is False:
++                continue  # local patch: subtitle gone, leave it out of the player
+             try:
+                 local, english = find_language_names(file["lang"])
+             except Exception:
