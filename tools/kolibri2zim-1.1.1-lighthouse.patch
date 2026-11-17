@@ -17,17 +17,22 @@
      )
      resp.raise_for_status()
  
-@@ -225,3 +226,24 @@
+@@ -225,3 +226,34 @@
      else:
          fp.seek(0)
      return total_downloaded, resp.headers
 +
 +
 +def stream_file(url, fpath=None, byte_stream=None, *args, **kwargs):
-+    # local patch (Lighthouse): retry stalled or dropped downloads from scratch
++    # local patch (Lighthouse): retry stalled or dropped downloads from scratch.
++    # Network errors wait out the outage (backoff capped at 5 min, give up after 24 h
++    # on one file) so a WAN drop doesn't kill a week-long build.
 +    import time
 +
-+    for attempt in range(6):
++    max_wait = 24 * 3600
++    start = time.monotonic()
++    attempt = 0
++    while True:
 +        try:
 +            return _stream_file_once(url, fpath, byte_stream, *args, **kwargs)
 +        except (
@@ -35,13 +40,18 @@
 +            requests.exceptions.Timeout,
 +            requests.exceptions.ChunkedEncodingError,
 +        ) as exc:
-+            if attempt == 5:
++            waited = time.monotonic() - start
++            if waited >= max_wait:
 +                raise
-+            logger.warning(f"PATCH retry {attempt + 1}/5 for {url}: {exc}")
++            attempt += 1
++            delay = min(10 * 2 ** (attempt - 1), 300)
++            logger.warning(
++                f"PATCH retry {attempt} for {url} (waited {int(waited)}s, next in {delay}s): {exc}"
++            )
 +            if byte_stream is not None:
 +                byte_stream.seek(0)
 +                byte_stream.truncate()
-+            time.sleep(10 * (attempt + 1))
++            time.sleep(delay)
 --- a/kolibri2zim/debug.py
 +++ b/kolibri2zim/debug.py
 @@ -16,8 +16,20 @@
