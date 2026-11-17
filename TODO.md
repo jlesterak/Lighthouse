@@ -22,7 +22,7 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
    - [ ] Back on picebox: plug in, `sudo mount /mnt/lighthouse && docker start kiwix`, check http://wiki.home.arpa.
    Tell an agent what failed; it fixes the docs or scripts.
 ## [IN PROGRESS]
-- [BLOCKED: Jake runs the rw remount] Khan Academy ZIM build on picebox, **retry approved 2026-11-11**. kolibri2zim 1.1.1 in
+- [BLOCKED: Jake decides on another retry] Khan Academy ZIM build on picebox, retry approved 2026-11-11 and run; failed again 2026-11-13. kolibri2zim 1.1.1 in
   venv `picebox:~/k2z`, channel c9d7f950ab6b5a1199e3d6c10d7f0103 (English, US, 68 GB), output `/mnt/lighthouse/.k2z/out/`.
   Local patches (originals kept as `*.orig` next to each file; full diff in `tools/kolibri2zim-1.1.1-lighthouse.patch`):
   `zimscraperlib/download.py` timeout+retry (11-07 hang fix); `kolibri2zim/debug.py` + `scraper.py` (11-11): HTTP 404/410
@@ -30,7 +30,10 @@ Nothing left an agent can do without Jake's hands. Jake's list, in priority orde
   a gone exercise/HTML5 archive skips that node, `PATCH skip ... node`). Other errors still fail the run as before.
   History: 11-07 first run hung (no timeout); 11-07 17:37 restart ran ~4 days at ~0.36 GB/h, then 11-11 09:43 died on one
   404 subtitle (`f6b8d91b2f720c24e768e0959227dd6d.vtt`) and kolibri2zim deleted its build folder (no partial output).
-  **Next:** Jake: `ssh -t picebox sudo mount -o remount,rw /mnt/lighthouse` (fstab mounts it ro; no sudo-free way). Then
+  **2026-11-11 18:46 retry (patched) ran ~51 h:** 2,822 gone files skipped as designed, then 2026-11-13 21:35 it died on
+  "Network is unreachable" (5 retries exhausted on one `.vtt`; not a 404, so the patch does not skip it) and again deleted its build
+  folder; `.k2z/out/` is empty and the stick is ro again (checked 2026-11-16). A WAN drop of a few minutes kills a week-long run.
+  **Next (Jake decides):** drop it, or retry once the downloader waits out network errors (needs a patch change first). Retry steps: Jake: `ssh -t picebox sudo mount -o remount,rw /mnt/lighthouse` (fstab mounts it ro; no sudo-free way). Then
   `ssh picebox ~/k2z-start.sh` (checks rw, cleans `.k2z`, moves `~/k2z.log` aside with a date suffix, starts kolibri2zim
   detached with setsid). Expect ~a week with the stick rw. Not resumable mid-run: a restart starts over.
   Monitor: `ssh picebox 'pgrep -af bin/kolibri2zim; echo age=$(( $(date +%s) - $(stat -c %Y ~/k2z.log) ))s; grep -c download_to ~/k2z.log; grep -c "PATCH skip" ~/k2z.log; grep -cE "ERROR|Interrupting|FAILURE" ~/k2z.log; ls -la /mnt/lighthouse/.k2z/out/'`.
